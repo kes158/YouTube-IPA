@@ -112,7 +112,7 @@ runs:
           git ls-remote "https://github.com/$1.git" HEAD | cut -f1
         }
 
-        echo "theos=$(get_hash theos/theos)"                                         >> $GITHUB_OUTPUT
+        echo "theos=$(get_hash roothide/theos)"                                      >> $GITHUB_OUTPUT
         echo "youpip=$(get_hash PoomSmart/YouPiP)"                                   >> $GITHUB_OUTPUT
         echo "ytuhd=$(get_hash Tonwalter888/YTUHD)"                                  >> $GITHUB_OUTPUT
         echo "ryd=$(get_hash PoomSmart/Return-YouTube-Dislikes)"                     >> $GITHUB_OUTPUT
@@ -131,7 +131,7 @@ runs:
         echo "ytweaks=$(get_hash fosterbarnes/YTweaks)"                              >> $GITHUB_OUTPUT
         echo "yougetcaption=$(get_hash PoomSmart/YouGetCaption)"                     >> $GITHUB_OUTPUT
         echo "iamyoutube=$(get_hash PoomSmart/IAmYouTube)"                           >> $GITHUB_OUTPUT
-        echo "youmod=$(get_hash PDFMerger2025/YouMod)"                               >> $GITHUB_OUTPUT
+        echo "youmod=$(get_hash Tonwalter888/YouMod)"                               >> $GITHUB_OUTPUT
 
         if [ "${{ inputs.isponsorblock }}" = "true" ]; then
           echo "isponsorblock=$(get_hash Galactic-Dev/iSponsorBlock)"                >> $GITHUB_OUTPUT
