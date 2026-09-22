@@ -256,9 +256,12 @@ jobs:
 
       - name: Download YouMod (prebuilt release)
         if: inputs.youmod == true && steps.cache_tweaks.outputs.cache_youmod_hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           curl -s \
             -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
             https://api.github.com/repos/kes158/YouMod/releases/latest \
             > youmod_release.json
           DEB_URL=$(jq -r '.assets[] | select(.name | test("iphoneos-arm64\\.deb$")) | .browser_download_url' youmod_release.json)
@@ -374,10 +377,19 @@ jobs:
 
       - name: Download prebuilt Gonerino (patched fork)
         if: inputs.gonerino == true && steps.cache_tweaks.outputs.cache_gonerino_hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          ASSET_URL=$(curl -s https://api.github.com/repos/kes158/Gonerino/releases/latest \
+          ASSET_URL=$(curl -s \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/kes158/Gonerino/releases/latest \
           | grep "browser_download_url.*\.deb" \
           | cut -d '"' -f 4)
+          if [ -z "$ASSET_URL" ]; then
+            echo "::error::kes158/Gonerino releases/latest 에서 .deb 에셋을 찾지 못했습니다."
+            exit 1
+          fi
           curl -L -o ${{ github.workspace }}/gonerino.deb "$ASSET_URL"
 
       - name: Clone and Build YTweaks
