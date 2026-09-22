@@ -53,25 +53,25 @@ on:
 
       YouQuality:
         description: "Integrate YouQuality"
-        default: true
+        default: false
         required: false
         type: boolean
 
       YouChooseQuality:
         description: "Integrate YouChooseQuality"
-        default: true
+        default: false
         required: false
         type: boolean
 
       YouSlider:
         description: "Integrate YouSlider"
-        default: true
+        default: false
         required: false
         type: boolean
 
       YTSilentVote:
         description: "Integrate YTSilentVote"
-        default: true
+        default: false
         required: false
         type: boolean
 
@@ -95,7 +95,7 @@ on:
 
       YouSpeed:
         description: "Integrate YouSpeed"
-        default: true
+        default: false
         required: false
         type: boolean
 
@@ -107,7 +107,7 @@ on:
 
       iSponsorBlock:
         description: "Integrate iSponsorBlock"
-        default: true
+        default: false
         required: false
         type: boolean
 
