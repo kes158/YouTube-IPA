@@ -26,7 +26,7 @@ on:
         default: true
         required: true
         type: boolean
-        
+
       YouMod:
         description: "Integrate YouMod"
         default: false
@@ -132,26 +132,26 @@ jobs:
     uses: ./.github/workflows/_build_tweaks.yml
     with:
       youpro: false
-      youmod: ${{ inputs.youmod }}
-      isponsorblock: ${{ inputs.isponsorblock }}
-      demc: ${{ inputs.demc }}
-      youpip: ${{ inputs.youpip }}
+      youmod: ${{ inputs.YouMod }}
+      isponsorblock: ${{ inputs.iSponsorBlock }}
+      demc: ${{ inputs.DontEatMyContent }}
+      youpip: ${{ inputs.YouPiP }}
       ytuhd: false
-      ryd: ${{ inputs.ryd }}
-      ytabconfig: ${{ inputs.ytabconfig }}
-      youquality: ${{ inputs.youquality }}
-      youslider: ${{ inputs.youslider }}
-      ytsilentvote: ${{ inputs.ytsilentvote }}
-      ytweaks: ${{ inputs.ytweaks }}
-      youchoose: ${{ inputs.youchoose }}
-      gonerino: ${{ inputs.gonerino }}
-      yougetcaption: ${{ inputs.yougetcaption }}
-      youspeed: ${{ inputs.youspeed }}
+      ryd: ${{ inputs.RYD }}
+      ytabconfig: ${{ inputs.YTABConfig }}
+      youquality: ${{ inputs.YouQuality }}
+      youslider: ${{ inputs.YouSlider }}
+      ytsilentvote: ${{ inputs.YTSilentVote }}
+      ytweaks: ${{ inputs.YTweaks }}
+      youchoose: ${{ inputs.YouChooseQuality }}
+      gonerino: ${{ inputs.Gonerino }}
+      yougetcaption: ${{ inputs.YouGetCaption }}
+      youspeed: ${{ inputs.YouSpeed }}
       youmute: false
       youloop: false
       opensafari: false
-      alderis: ${{ inputs.alderis }}
-      ytkace: ${{ inputs.ytkace }}
+      alderis: ${{ inputs.Alderis }}
+      ytkace: ${{ inputs.YTKACE }}
 
   package:
     name: Build YouMod IPA
@@ -169,11 +169,11 @@ jobs:
           path: ${{ github.workspace }}
 
       - name: Checkout Repository (for Plugins)
-        if: inputs.inject_plugins == true
+        if: inputs.Inject_Plugins == true
         uses: actions/checkout@v6.0.3
 
       - name: Copy selected Plugins to workspace
-        if: inputs.inject_plugins == true
+        if: inputs.Inject_Plugins == true
         run: |
           cp -r Plugins/*.appex ${{ github.workspace }}/
 
@@ -186,22 +186,21 @@ jobs:
       - name: Hide Sensitive Inputs
         uses: levibostian/action-hide-sensitive-inputs@1.2.0
         with:
-          exclude_inputs: bundle_id,display_name,demc,isponsorblock,youpip,ryd,ytabconfig,youquality,youslider,ytsilentvote,ytweaks,youchoose,gonerino,yougetcaption,youspeed,youmod,alderis,ytkace,inject_plugins
+          exclude_inputs: bundle_id,display_name,YTKACE,YouMod,YouPiP,RYD,YTABConfig,YouQuality,YouChooseQuality,YouSlider,YTSilentVote,YTweaks,Gonerino,YouGetCaption,YouSpeed,DontEatMyContent,iSponsorBlock,Alderis,Inject_Plugins
 
       - name: Download and Validate IPA
         run: |
-          echo "Downloading IPA from: ${{ inputs.ipa_url }}"
-          
-          # Download with follow redirects and show headers
-          wget --quiet --no-verbose --header="Accept: application/octet-stream,application/zip,application/x-ios-app,*/*" --header="User-Agent: Mozilla/5.0" "${{ inputs.ipa_url }}" -O youtube.ipa || wget --quiet --no-verbose --header="Accept: application/octet-stream,application/zip,application/x-ios-app,*/*" "${{ inputs.ipa_url }}" -O youtube.ipa
-          
-          # Check if file exists and has content
+          IPA_URL="${{ inputs.ipa_url }}"
+          IPA_URL="${IPA_URL/dl=0/dl=1}"
+          echo "Downloading IPA from: $IPA_URL"
+
+          wget --quiet --no-verbose --header="Accept: application/octet-stream,application/zip,application/x-ios-app,*/*" --header="User-Agent: Mozilla/5.0" "$IPA_URL" -O youtube.ipa || wget --quiet --no-verbose --header="Accept: application/octet-stream,application/zip,application/x-ios-app,*/*" "$IPA_URL" -O youtube.ipa
+
           if [ ! -f youtube.ipa ]; then
             echo "::error::Download failed: File not found"
             exit 1
           fi
-          
-          # Check file size
+
           file_size=$(stat -f%z youtube.ipa 2>/dev/null || stat -c%s youtube.ipa 2>/dev/null || echo "0")
           if [ "$file_size" -lt 1000000 ]; then
             echo "::error::Downloaded file is too small ($file_size bytes). This likely means the URL is invalid or requires authentication."
@@ -209,26 +208,23 @@ jobs:
             head -c 500 youtube.ipa
             exit 1
           fi
-          
-          # Check file type
+
           file_type=$(file --mime-type -b youtube.ipa)
           echo "File type: $file_type"
           echo "File size: $file_size bytes"
-          
-          # Try to identify if it's HTML
+
           if head -c 100 youtube.ipa | grep -q "<html\|<!DOCTYPE"; then
             echo "::error::Downloaded file appears to be HTML, not an IPA. The URL likely points to a webpage instead of the actual IPA file."
             echo "HTML preview:"
             head -c 500 youtube.ipa
             exit 1
           fi
-          
-          # Validate it's a zip file
+
           if ! file youtube.ipa | grep -q "Zip archive"; then
             echo "::error::Downloaded file is not a valid Zip archive. File type: $(file youtube.ipa)"
             exit 1
           fi
-          
+
           echo "✅ IPA file validated successfully!"
 
       - name: Get YouTube Version
@@ -238,7 +234,7 @@ jobs:
           rm -rf ytextracted
 
       - name: Get YouMod Version
-        if: inputs.youmod == true
+        if: inputs.YouMod == true
         run: |
           if [ ! -f "youmod.deb" ]; then
             echo "::warning::youmod.deb not found - using default version"
@@ -269,7 +265,7 @@ jobs:
           cd .. && rm -rf _youmod_extract
 
       - name: Set Default YouMod Version
-        if: inputs.youmod != true
+        if: inputs.YouMod != true
         run: |
           echo "YOUMOD_VERSION=disabled" >> $GITHUB_ENV
 
@@ -280,11 +276,9 @@ jobs:
       - name: Inject Tweaks Into IPA
         run: |
           tweaks=""
-          # Plugins/ 폴더에서 복사한 .appex들
           for appex in IntentsExtension.appex NotificationContentExtension.appex NotificationServiceExtension.appex OpenYoutubeSafariExtension.appex ShareExtension.appex WidgetKitExtension.appex; do
             [ -e "$appex" ] && tweaks="$tweaks $appex"
           done
-          # .deb들
           for f in *.deb; do
             [ -f "$f" ] && tweaks="$tweaks $f"
           done
