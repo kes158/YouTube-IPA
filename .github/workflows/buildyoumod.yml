@@ -233,41 +233,30 @@ jobs:
           echo "YT_VERSION=$(grep -A 1 'CFBundleVersion' ytextracted/Payload/YouTube.app/Info.plist | grep '<string>' | awk -F'[><]' '{print $3}')" >> $GITHUB_ENV
           rm -rf ytextracted
 
-      - name: Get YouMod Version
-        if: inputs.YouMod == true
+      - name: Get Main Tweak Version and Release Notes
         run: |
-          if [ ! -f "youmod.deb" ]; then
-            echo "::warning::youmod.deb not found - using default version"
-            echo "YOUMOD_VERSION=unknown" >> $GITHUB_ENV
-            exit 0
-          fi
-          mkdir _youmod_extract && cd _youmod_extract
-          ar x "../youmod.deb" >/dev/null 2>&1
-          if [ -f control.tar.gz ]; then
-            tar -xzf control.tar.gz ./control
-          elif [ -f control.tar.xz ]; then
-            tar -xJf control.tar.xz ./control
-          elif [ -f control.tar.zst ]; then
-            tar --zstd -xf control.tar.zst ./control
+          if [ "${{ inputs.YTKACE }}" = "true" ]; then
+            TWEAK_NAME="YTKACE"
+            RELEASE_JSON=$(curl -s https://api.github.com/repos/itzzace/ytkace/releases/latest)
+            TWEAK_VERSION=$(echo "$RELEASE_JSON" | grep '"tag_name"' | cut -d '"' -f 4 | sed 's/^v//')
+            RELEASE_NOTES=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('body',''))")
+          elif [ "${{ inputs.YouMod }}" = "true" ]; then
+            TWEAK_NAME="YouMod"
+            RELEASE_JSON=$(curl -s https://api.github.com/repos/Tonwalter888/YouMod/releases/latest)
+            TWEAK_VERSION=$(echo "$RELEASE_JSON" | grep '"tag_name"' | cut -d '"' -f 4 | sed 's/^v//')
+            RELEASE_NOTES=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('body',''))")
           else
-            echo "::warning::Could not find control tarball in youmod.deb"
-            echo "YOUMOD_VERSION=unknown" >> $GITHUB_ENV
-            cd .. && rm -rf _youmod_extract
-            exit 0
+            TWEAK_NAME="YouTube"
+            TWEAK_VERSION="unknown"
+            RELEASE_NOTES=""
           fi
-          VERSION=$(grep '^Version:' control | awk '{print $2}' | tr -d '\r')
-          if [ -z "$VERSION" ]; then
-            echo "::warning::Could not extract version from youmod.deb control file"
-            echo "YOUMOD_VERSION=unknown" >> $GITHUB_ENV
-          else
-            echo "YOUMOD_VERSION=$VERSION" >> $GITHUB_ENV
-          fi
-          cd .. && rm -rf _youmod_extract
 
-      - name: Set Default YouMod Version
-        if: inputs.YouMod != true
-        run: |
-          echo "YOUMOD_VERSION=disabled" >> $GITHUB_ENV
+          echo "TWEAK_NAME=$TWEAK_NAME" >> $GITHUB_ENV
+          echo "TWEAK_VERSION=$TWEAK_VERSION" >> $GITHUB_ENV
+          # 릴리즈 노트 멀티라인 처리
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
+          echo "$RELEASE_NOTES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Install cyan
         run: |
@@ -275,6 +264,9 @@ jobs:
 
       - name: Inject Tweaks Into IPA
         run: |
+          RELEASE_TITLE="${{ env.TWEAK_NAME }}_v${{ env.TWEAK_VERSION }}_v${{ env.YT_VERSION }}"
+          echo "RELEASE_TITLE=$RELEASE_TITLE" >> $GITHUB_ENV
+
           tweaks=""
           for appex in IntentsExtension.appex NotificationContentExtension.appex NotificationServiceExtension.appex OpenYoutubeSafariExtension.appex ShareExtension.appex WidgetKitExtension.appex; do
             [ -e "$appex" ] && tweaks="$tweaks $appex"
@@ -282,21 +274,24 @@ jobs:
           for f in *.deb; do
             [ -f "$f" ] && tweaks="$tweaks $f"
           done
-          cyan -i youtube.ipa -o YouModExtra_${{ env.YT_VERSION }}_${{ env.YOUMOD_VERSION }}.ipa -uwesf $tweaks -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
+          cyan -i youtube.ipa -o "${RELEASE_TITLE}.ipa" -uwesf $tweaks -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
 
       - name: Create a Draft Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           i=1
-          while gh release view "youmodextra-ipa${i}" --repo "$GITHUB_REPOSITORY" &>/dev/null; do
+          while gh release view "${{ env.RELEASE_TITLE }}-${i}" --repo "$GITHUB_REPOSITORY" &>/dev/null; do
             i=$(( i + 1 ))
           done
-          gh release create "youmodextra-ipa${i}" \
+          TAG="${{ env.RELEASE_TITLE }}"
+          [ "$i" -gt 1 ] && TAG="${TAG}-${i}"
+          gh release create "$TAG" \
             --repo "$GITHUB_REPOSITORY" \
-            --title "YouModExtra_${{ env.YT_VERSION }}_${{ env.YOUMOD_VERSION }}" \
+            --title "${{ env.RELEASE_TITLE }}" \
+            --notes "${{ env.RELEASE_NOTES }}" \
             --draft \
-            YouModExtra_${{ env.YT_VERSION }}_${{ env.YOUMOD_VERSION }}.ipa
+            "${{ env.RELEASE_TITLE }}.ipa"
 
       - name: Job Summary - Build Complete
         run: echo -e '### 🛠️ Build YouMod IPA Complete!' >> $GITHUB_STEP_SUMMARY
