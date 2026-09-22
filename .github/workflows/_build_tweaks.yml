@@ -364,12 +364,13 @@ jobs:
           cd YTSilentVote && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/ytnovote.deb
 
-      - name: Clone and Build Gonerino
+      - name: Download prebuilt Gonerino (patched fork)
         if: inputs.gonerino == true && steps.cache_tweaks.outputs.cache_gonerino_hit != 'true'
         run: |
-          git clone --quiet --depth=1 https://github.com/castdrian/Gonerino.git
-          cd Gonerino && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless ARCHS=arm64
-          mv packages/*.deb ${{ github.workspace }}/gonerino.deb
+          ASSET_URL=$(curl -s https://api.github.com/repos/kes158/Gonerino/releases/latest \
+          | grep "browser_download_url.*\.deb" \
+          | cut -d '"' -f 4)
+          curl -L -o ${{ github.workspace }}/gonerino.deb "$ASSET_URL"
 
       - name: Clone and Build YTweaks
         if: inputs.ytweaks == true && steps.cache_tweaks.outputs.cache_ytweaks_hit != 'true'
