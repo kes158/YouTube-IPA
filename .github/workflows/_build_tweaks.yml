@@ -272,11 +272,12 @@ jobs:
             "https://github.com/$YOUMOD_REPOSITORY.git" YouMod
           cd YouMod
           make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
-          DEB=$(find packages -maxdepth 1 -name 'youmod_*_iphoneos-arm*.deb' -print -quit)
+          DEB=$(find packages -maxdepth 1 -name '*.deb' -print -quit)
           if [ -z "$DEB" ]; then
             echo "::error::YouMod build did not produce a .deb package"
             exit 1
           fi
+          dpkg-deb -f "$DEB" Version > "${{ github.workspace }}/youmod_version.txt"
           cp "$DEB" "${{ github.workspace }}/youmod.deb"
 
       - name: Clone and Build YouPro (Optional)
@@ -471,6 +472,7 @@ jobs:
           path: |
             *.deb
             *.appex
+            youmod_version.txt
           if-no-files-found: ignore
           retention-days: 1
           

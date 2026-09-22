@@ -251,7 +251,6 @@ jobs:
         env:
           INPUT_YTKACE: ${{ inputs.YTKACE }}
           INPUT_YOUMOD: ${{ inputs.YouMod }}
-          INPUT_YOUMOD_REPOSITORY: ${{ inputs.YouMod_Repository }}
           GH_TOKEN: ${{ github.token }}
         run: |
           if [ "$INPUT_YTKACE" = "true" ]; then
@@ -263,11 +262,11 @@ jobs:
               > release.json
           elif [ "$INPUT_YOUMOD" = "true" ]; then
             TWEAK_NAME="YouMod"
-            curl -s \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer $GH_TOKEN" \
-              "https://api.github.com/repos/$INPUT_YOUMOD_REPOSITORY/releases/latest" \
-              > release.json
+            if [ ! -s youmod_version.txt ]; then
+              echo "::error::YouMod package version metadata was not included in the build artifact"
+              exit 1
+            fi
+            echo "{}" > release.json
           else
             TWEAK_NAME="YouTube"
             echo "{}" > release.json
@@ -275,7 +274,11 @@ jobs:
 
           echo "TWEAK_NAME=$TWEAK_NAME" >> $GITHUB_ENV
 
-          python3 .github/scripts/parse_release.py
+          if [ "$INPUT_YOUMOD" = "true" ] && [ "$INPUT_YTKACE" != "true" ]; then
+            TWEAK_VERSION_OVERRIDE="$(cat youmod_version.txt)" python3 .github/scripts/parse_release.py
+          else
+            python3 .github/scripts/parse_release.py
+          fi
 
       - name: Install cyan
         run: |
