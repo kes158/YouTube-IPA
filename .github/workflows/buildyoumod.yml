@@ -249,14 +249,25 @@ jobs:
             RELEASE_JSON="{}"
           fi
 
-          TWEAK_VERSION=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; v=json.load(sys.stdin).get('tag_name','unknown'); print(v.lstrip('v'))")
-          RELEASE_NOTES=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('body',''))")
-
           echo "TWEAK_NAME=$TWEAK_NAME" >> $GITHUB_ENV
-          echo "TWEAK_VERSION=$TWEAK_VERSION" >> $GITHUB_ENV
-          echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
-          echo "$RELEASE_NOTES" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+
+          # Python으로 버전 추출 + 릴리즈 노트를 GITHUB_ENV에 안전하게 직접 씀
+          # (echo를 쓰면 백틱, $, 특수문자가 shell에서 해석되어 내용이 깨지는 문제 방지)
+          printf '%s' "$RELEASE_JSON" | python3 -c "
+          import sys, json, os
+
+          data = json.load(sys.stdin)
+          version = data.get('tag_name', 'unknown').lstrip('v')
+          notes = data.get('body', '')
+
+          delimiter = 'RELEASE_NOTES_DELIMITER'
+
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write(f'TWEAK_VERSION={version}\n')
+              f.write(f'RELEASE_NOTES<<{delimiter}\n')
+              f.write(notes)
+              f.write(f'\n{delimiter}\n')
+          "
 
       - name: Install cyan
         run: |
