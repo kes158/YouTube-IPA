@@ -314,12 +314,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          i=1
-          while gh release view "${{ env.RELEASE_TITLE }}-${i}" --repo "$GITHUB_REPOSITORY" &>/dev/null; do
-            i=$(( i + 1 ))
-          done
+          # 기본 태그부터 체크하고, 이미 존재하면 -2, -3 순으로 증가
           TAG="${{ env.RELEASE_TITLE }}"
-          [ "$i" -gt 1 ] && TAG="${TAG}-${i}"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" &>/dev/null; then
+            i=2
+            while gh release view "${TAG}-${i}" --repo "$GITHUB_REPOSITORY" &>/dev/null
+            do
+              i=$(( i + 1 ))
+            done
+            TAG="${TAG}-${i}"
+          fi
+
 
           # 메인 트윅 .deb가 있으면 IPA와 함께 릴리즈에 첨부
           RELEASE_FILES="${{ env.RELEASE_TITLE }}.ipa"
