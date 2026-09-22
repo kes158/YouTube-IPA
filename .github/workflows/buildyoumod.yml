@@ -147,6 +147,42 @@ on:
         required: false
         type: boolean
 
+      plugin_intents:
+        description: "[Plugin] Inject IntentsExtension.appex"
+        default: false
+        required: false
+        type: boolean
+
+      plugin_notification_content:
+        description: "[Plugin] Inject NotificationContentExtension.appex"
+        default: false
+        required: false
+        type: boolean
+
+      plugin_notification_service:
+        description: "[Plugin] Inject NotificationServiceExtension.appex"
+        default: false
+        required: false
+        type: boolean
+
+      plugin_open_youtube_safari:
+        description: "[Plugin] Inject OpenYoutubeSafariExtension.appex (from Plugins/)"
+        default: false
+        required: false
+        type: boolean
+
+      plugin_share:
+        description: "[Plugin] Inject ShareExtension.appex"
+        default: false
+        required: false
+        type: boolean
+
+      plugin_widgetkit:
+        description: "[Plugin] Inject WidgetKitExtension.appex"
+        default: false
+        required: false
+        type: boolean
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -192,6 +228,44 @@ jobs:
           name: built-debs
           path: ${{ github.workspace }}
 
+      - name: Checkout Repository (for Plugins)
+        if: >
+          inputs.plugin_intents == true ||
+          inputs.plugin_notification_content == true ||
+          inputs.plugin_notification_service == true ||
+          inputs.plugin_open_youtube_safari == true ||
+          inputs.plugin_share == true ||
+          inputs.plugin_widgetkit == true
+        uses: actions/checkout@v6.0.3
+
+      - name: Copy selected Plugins to workspace
+        if: >
+          inputs.plugin_intents == true ||
+          inputs.plugin_notification_content == true ||
+          inputs.plugin_notification_service == true ||
+          inputs.plugin_open_youtube_safari == true ||
+          inputs.plugin_share == true ||
+          inputs.plugin_widgetkit == true
+        run: |
+          if [ "${{ inputs.plugin_intents }}" = "true" ]; then
+            cp -r Plugins/IntentsExtension.appex ${{ github.workspace }}/
+          fi
+          if [ "${{ inputs.plugin_notification_content }}" = "true" ]; then
+            cp -r Plugins/NotificationContentExtension.appex ${{ github.workspace }}/
+          fi
+          if [ "${{ inputs.plugin_notification_service }}" = "true" ]; then
+            cp -r Plugins/NotificationServiceExtension.appex ${{ github.workspace }}/
+          fi
+          if [ "${{ inputs.plugin_open_youtube_safari }}" = "true" ]; then
+            cp -r Plugins/OpenYoutubeSafariExtension.appex ${{ github.workspace }}/
+          fi
+          if [ "${{ inputs.plugin_share }}" = "true" ]; then
+            cp -r Plugins/ShareExtension.appex ${{ github.workspace }}/
+          fi
+          if [ "${{ inputs.plugin_widgetkit }}" = "true" ]; then
+            cp -r Plugins/WidgetKitExtension.appex ${{ github.workspace }}/
+          fi
+
       - name: List Downloaded Files
         run: |
           echo "Files downloaded from artifacts:"
@@ -201,7 +275,7 @@ jobs:
       - name: Hide Sensitive Inputs
         uses: levibostian/action-hide-sensitive-inputs@1.2.0
         with:
-          exclude_inputs: bundle_id,display_name,demc,isponsorblock,opensafari,youpip,ytuhd,ryd,ytabconfig,youquality,youslider,ytsilentvote,ytweaks,youchoose,gonerino,yougetcaption,youspeed,youmute,youloop,youmod,youpro,alderis,ytkace
+          exclude_inputs: bundle_id,display_name,demc,isponsorblock,opensafari,youpip,ytuhd,ryd,ytabconfig,youquality,youslider,ytsilentvote,ytweaks,youchoose,gonerino,yougetcaption,youspeed,youmute,youloop,youmod,youpro,alderis,ytkace,plugin_intents,plugin_notification_content,plugin_notification_service,plugin_open_youtube_safari,plugin_share,plugin_widgetkit
 
       - name: Download and Validate IPA
         run: |
@@ -295,9 +369,15 @@ jobs:
       - name: Inject Tweaks Into IPA
         run: |
           tweaks=""
+          # opensafari (clone에서 가져오는 기존 방식)
           if [ "${{ inputs.opensafari }}" = "true" ] && [ -e "OpenYouTubeSafariExtension.appex" ]; then
             tweaks="OpenYouTubeSafariExtension.appex"
           fi
+          # Plugins/ 폴더에서 복사한 .appex들
+          for appex in IntentsExtension.appex NotificationContentExtension.appex NotificationServiceExtension.appex OpenYoutubeSafariExtension.appex ShareExtension.appex WidgetKitExtension.appex; do
+            [ -e "$appex" ] && tweaks="$tweaks $appex"
+          done
+          # .deb들
           for f in *.deb; do
             [ -f "$f" ] && tweaks="$tweaks $f"
           done
@@ -326,4 +406,4 @@ jobs:
 
       - name: Job Summary - Cleanup
         run: |
-          echo -e "### 🧹 Cleanup\n\nYou can remove previous GitHub Actions run here: https://github.com/${{ github.repository }}/actions/workflows/delete-old-workflows-run.yml And if you want to delete old draft releases you have then here: https://github.com/${{ github.repository }}/actions/workflows/delete-old-draft-releases.yml" >> $GITHUB_STEP_SUMMARY
+          echo -e "### 🧹 Cleanup\n\nYou can remove previous GitHub Actions run here: https://github.com/${{ github.repository }}/actions/workflows/delete-old-workflows-run.yml And if you want to delete old draft releases you have then here: https://github.com/${{ github.repository }}/actions/workflows/delete-old-workflows-run.yml" >> $GITHUB_STEP_SUMMARY
