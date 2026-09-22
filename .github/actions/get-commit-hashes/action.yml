@@ -109,7 +109,7 @@ runs:
       shell: bash
       run: |
         get_hash() {
-          git ls-remote "https://github.com/$1.git" HEAD | cut -f1
+          git ls-remote "https://github.com/$1.git" "${2:-HEAD}" | cut -f1
         }
 
         echo "theos=$(get_hash roothide/theos)"                                      >> $GITHUB_OUTPUT
@@ -127,7 +127,7 @@ runs:
         echo "youslider=$(get_hash PoomSmart/YouSlider)"                             >> $GITHUB_OUTPUT
         echo "youchoose=$(get_hash Tonwalter888/YouChooseQuality)"                   >> $GITHUB_OUTPUT
         echo "ytsilentvote=$(get_hash PoomSmart/YTSilentVote)"                       >> $GITHUB_OUTPUT
-        echo "gonerino=$(get_hash castdrian/Gonerino)"                               >> $GITHUB_OUTPUT
+        echo "gonerino=$(get_hash kes158/Gonerino kes158-patch-1)"                   >> $GITHUB_OUTPUT
         echo "ytweaks=$(get_hash fosterbarnes/YTweaks)"                              >> $GITHUB_OUTPUT
         echo "yougetcaption=$(get_hash PoomSmart/YouGetCaption)"                     >> $GITHUB_OUTPUT
         echo "iamyoutube=$(get_hash PoomSmart/IAmYouTube)"                           >> $GITHUB_OUTPUT
