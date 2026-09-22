@@ -87,6 +87,14 @@ on:
         type: boolean
         required: false
         default: true
+      youmod_repository:
+        type: string
+        required: false
+        default: kes158/YouMod
+      youmod_ref:
+        type: string
+        required: false
+        default: Edit-Settings
       alderis:
         type: boolean
         required: false
@@ -246,7 +254,7 @@ jobs:
           volumeboost_commit: ${{ steps.commit_hashes.outputs.volumeboost }}
           nativeshare_commit: ${{ steps.commit_hashes.outputs.nativeshare }}
           ytkace_commit: ${{ steps.commit_hashes.outputs.ytkace }}
-          youmod_commit: ${{ steps.commit_hashes.outputs.youmod }}
+          youmod_commit: disabled
 
       - name: Build YTVideoOverlay
         if: steps.cache_tweaks.outputs.cache_ytvo_hit != 'true'
@@ -254,23 +262,22 @@ jobs:
           cd YTVideoOverlay && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/ytvo.deb
 
-      - name: Download YouMod (prebuilt release)
+      - name: Build YouMod from selected source branch
         if: inputs.youmod == true && steps.cache_tweaks.outputs.cache_youmod_hit != 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
+          YOUMOD_REPOSITORY: ${{ inputs.youmod_repository }}
+          YOUMOD_REF: ${{ inputs.youmod_ref }}
         run: |
-          curl -s \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            https://api.github.com/repos/kes158/YouMod/releases/latest \
-            > youmod_release.json
-          DEB_URL=$(jq -r '.assets[] | select(.name | test("iphoneos-arm64\\.deb$")) | .browser_download_url' youmod_release.json)
-          if [ -z "$DEB_URL" ] || [ "$DEB_URL" = "null" ]; then
-            echo "::error::kes158/YouMod releases/latest 에서 iphoneos-arm64.deb 에셋을 찾지 못했습니다. release가 draft 상태는 아닌지 확인하세요."
+          git clone --quiet --depth=1 --branch "$YOUMOD_REF" \
+            "https://github.com/$YOUMOD_REPOSITORY.git" YouMod
+          cd YouMod
+          make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+          DEB=$(find packages -maxdepth 1 -name 'youmod_*_iphoneos-arm*.deb' -print -quit)
+          if [ -z "$DEB" ]; then
+            echo "::error::YouMod build did not produce a .deb package"
             exit 1
           fi
-          echo "Downloading: $DEB_URL"
-          curl -sL "$DEB_URL" -o ${{ github.workspace }}/youmod.deb
+          cp "$DEB" "${{ github.workspace }}/youmod.deb"
 
       - name: Clone and Build YouPro (Optional)
         if: inputs.youpro == true

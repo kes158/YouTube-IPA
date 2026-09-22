@@ -33,6 +33,18 @@ on:
         required: false
         type: boolean
 
+      YouMod_Repository:
+        description: "YouMod source repository (owner/repo)"
+        default: "kes158/YouMod"
+        required: false
+        type: string
+
+      YouMod_Ref:
+        description: "YouMod source branch or tag"
+        default: "Edit-Settings"
+        required: false
+        type: string
+
       YouPiP:
         description: "Integrate YouPiP"
         default: true
@@ -133,6 +145,8 @@ jobs:
     with:
       youpro: false
       youmod: ${{ inputs.YouMod }}
+      youmod_repository: ${{ inputs.YouMod_Repository }}
+      youmod_ref: ${{ inputs.YouMod_Ref }}
       isponsorblock: ${{ inputs.iSponsorBlock }}
       demc: ${{ inputs.DontEatMyContent }}
       youpip: ${{ inputs.YouPiP }}
@@ -237,6 +251,7 @@ jobs:
         env:
           INPUT_YTKACE: ${{ inputs.YTKACE }}
           INPUT_YOUMOD: ${{ inputs.YouMod }}
+          INPUT_YOUMOD_REPOSITORY: ${{ inputs.YouMod_Repository }}
           GH_TOKEN: ${{ github.token }}
         run: |
           if [ "$INPUT_YTKACE" = "true" ]; then
@@ -251,7 +266,7 @@ jobs:
             curl -s \
               -H "Accept: application/vnd.github+json" \
               -H "Authorization: Bearer $GH_TOKEN" \
-              https://api.github.com/repos/kes158/YouMod/releases/latest \
+              "https://api.github.com/repos/$INPUT_YOUMOD_REPOSITORY/releases/latest" \
               > release.json
           else
             TWEAK_NAME="YouTube"
