@@ -234,26 +234,26 @@ jobs:
           rm -rf ytextracted
 
       - name: Get Main Tweak Version and Release Notes
+        env:
+          INPUT_YTKACE: ${{ inputs.YTKACE }}
+          INPUT_YOUMOD: ${{ inputs.YouMod }}
         run: |
-          if [ "${{ inputs.YTKACE }}" = "true" ]; then
+          if [ "$INPUT_YTKACE" = "true" ]; then
             TWEAK_NAME="YTKACE"
-            RELEASE_JSON=$(curl -s https://api.github.com/repos/itzzace/ytkace/releases/latest)
-            TWEAK_VERSION=$(echo "$RELEASE_JSON" | grep '"tag_name"' | cut -d '"' -f 4 | sed 's/^v//')
-            RELEASE_NOTES=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('body',''))")
-          elif [ "${{ inputs.YouMod }}" = "true" ]; then
+            RELEASE_JSON=$(curl -s -H "Accept: application/vnd.github+json" https://api.github.com/repos/itzzace/ytkace/releases/latest)
+          elif [ "$INPUT_YOUMOD" = "true" ]; then
             TWEAK_NAME="YouMod"
-            RELEASE_JSON=$(curl -s https://api.github.com/repos/Tonwalter888/YouMod/releases/latest)
-            TWEAK_VERSION=$(echo "$RELEASE_JSON" | grep '"tag_name"' | cut -d '"' -f 4 | sed 's/^v//')
-            RELEASE_NOTES=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('body',''))")
+            RELEASE_JSON=$(curl -s -H "Accept: application/vnd.github+json" https://api.github.com/repos/Tonwalter888/YouMod/releases/latest)
           else
             TWEAK_NAME="YouTube"
-            TWEAK_VERSION="unknown"
-            RELEASE_NOTES=""
+            RELEASE_JSON="{}"
           fi
+
+          TWEAK_VERSION=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; v=json.load(sys.stdin).get('tag_name','unknown'); print(v.lstrip('v'))")
+          RELEASE_NOTES=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('body',''))")
 
           echo "TWEAK_NAME=$TWEAK_NAME" >> $GITHUB_ENV
           echo "TWEAK_VERSION=$TWEAK_VERSION" >> $GITHUB_ENV
-          # 릴리즈 노트 멀티라인 처리
           echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
           echo "$RELEASE_NOTES" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
@@ -290,7 +290,6 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --title "${{ env.RELEASE_TITLE }}" \
             --notes "${{ env.RELEASE_NOTES }}" \
-            --draft \
             "${{ env.RELEASE_TITLE }}.ipa"
 
       - name: Job Summary - Build Complete
