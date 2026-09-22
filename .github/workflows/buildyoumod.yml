@@ -1,4 +1,4 @@
-name: Build YouMod IPA
+name: Build YouTube IPA
 
 on:
   workflow_dispatch:
