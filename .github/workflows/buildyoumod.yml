@@ -260,30 +260,24 @@ jobs:
           version = data.get('tag_name', 'unknown').lstrip('v')
           notes = data.get('body', '')
 
-          # 버전만 GITHUB_ENV에 저장
+          delimiter = 'RELEASE_NOTES_DELIMITER'
+
           with open(os.environ['GITHUB_ENV'], 'a') as f:
               f.write(f'TWEAK_VERSION={version}\n')
-
-          # 'YouTube X.XX requires iOS' 문단부터 아래는 제거
-          import re
-          notes = re.split(r'YouTube\s+[\d.]+\s+requires\s+iOS', notes)[0].rstrip()
-
-          # 릴리즈 노트는 파일로 저장 (--notes-file로 넘겨야 특수문자 완전 보존)
-          with open('release_notes.md', 'w') as f:
+              f.write(f'RELEASE_NOTES<<{delimiter}\n')
               f.write(notes)
+              f.write(f'\n{delimiter}\n')
           "
 
       - name: Install cyan
         run: |
           pipx install --force https://github.com/asdfzxcvbn/pyzule-rw/archive/main.zip
 
-      - name: Set Release Title
+      - name: Inject Tweaks Into IPA
         run: |
           RELEASE_TITLE="${{ env.TWEAK_NAME }}_v${{ env.TWEAK_VERSION }}_v${{ env.YT_VERSION }}"
           echo "RELEASE_TITLE=$RELEASE_TITLE" >> $GITHUB_ENV
 
-      - name: Inject Tweaks Into IPA
-        run: |
           tweaks=""
           for appex in IntentsExtension.appex NotificationContentExtension.appex NotificationServiceExtension.appex OpenYoutubeSafariExtension.appex ShareExtension.appex WidgetKitExtension.appex; do
             [ -e "$appex" ] && tweaks="$tweaks $appex"
@@ -291,61 +285,23 @@ jobs:
           for f in *.deb; do
             [ -f "$f" ] && tweaks="$tweaks $f"
           done
-          cyan -i youtube.ipa -o "${{ env.RELEASE_TITLE }}.ipa" -uwesf $tweaks -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
-
-      - name: Collect Main Tweak Deb for Release
-        env:
-          INPUT_YTKACE: ${{ inputs.YTKACE }}
-          INPUT_YOUMOD: ${{ inputs.YouMod }}
-        run: |
-          # YTKACE: com.itzzace.ytkace_*_roothide.deb + com.itzzace.ytkace_*_rootless.deb
-          # YouMod: youmod_*_iphoneos-arm.deb (패턴 확인 필요시 수정)
-          MAIN_DEBS=""
-
-          if [ "$INPUT_YTKACE" = "true" ]; then
-            for f in com.itzzace.ytkace_*_roothide.deb com.itzzace.ytkace_*_rootless.deb; do
-              [ -f "$f" ] && MAIN_DEBS="$MAIN_DEBS $f" && echo "✅ Found: $f"
-            done
-          elif [ "$INPUT_YOUMOD" = "true" ]; then
-            for f in youmod_*_iphoneos-arm.deb; do
-              [ -f "$f" ] && MAIN_DEBS="$MAIN_DEBS $f" && echo "✅ Found: $f"
-            done
-          fi
-
-          if [ -n "$MAIN_DEBS" ]; then
-            echo "MAIN_TWEAK_DEBS=$MAIN_DEBS" >> $GITHUB_ENV
-          else
-            echo "⚠️ No matching tweak deb found. Will upload IPA only."
-            echo "MAIN_TWEAK_DEBS=" >> $GITHUB_ENV
-          fi
+          cyan -i youtube.ipa -o "${RELEASE_TITLE}.ipa" -uwesf $tweaks -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
 
       - name: Create a Draft Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # 기본 태그부터 체크하고, 이미 존재하면 -2, -3 순으로 증가
+          i=1
+          while gh release view "${{ env.RELEASE_TITLE }}-${i}" --repo "$GITHUB_REPOSITORY" &>/dev/null; do
+            i=$(( i + 1 ))
+          done
           TAG="${{ env.RELEASE_TITLE }}"
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" &>/dev/null; then
-            i=2
-            while gh release view "${TAG}-${i}" --repo "$GITHUB_REPOSITORY" &>/dev/null
-            do
-              i=$(( i + 1 ))
-            done
-            TAG="${TAG}-${i}"
-          fi
-
-
-          # 메인 트윅 .deb가 있으면 IPA와 함께 릴리즈에 첨부
-          RELEASE_FILES="${{ env.RELEASE_TITLE }}.ipa"
-          if [ -n "${{ env.MAIN_TWEAK_DEBS }}" ]; then
-            RELEASE_FILES="$RELEASE_FILES ${{ env.MAIN_TWEAK_DEBS }}"
-          fi
-
+          [ "$i" -gt 1 ] && TAG="${TAG}-${i}"
           gh release create "$TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --title "${{ env.RELEASE_TITLE }}" \
-            --notes-file release_notes.md \
-            $RELEASE_FILES
+            --notes "${{ env.RELEASE_NOTES }}" \
+            "${{ env.RELEASE_TITLE }}.ipa"
 
       - name: Job Summary - Build Complete
         run: echo -e '### 🛠️ Build YouMod IPA Complete!' >> $GITHUB_STEP_SUMMARY
