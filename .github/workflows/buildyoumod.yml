@@ -251,7 +251,7 @@ jobs:
             curl -s \
               -H "Accept: application/vnd.github+json" \
               -H "Authorization: Bearer $GH_TOKEN" \
-              https://api.github.com/repos/Tonwalter888/YouMod/releases/latest \
+              https://api.github.com/repos/kes158/YouMod/releases/latest \
               > release.json
           else
             TWEAK_NAME="YouTube"
