@@ -21,160 +21,106 @@ on:
         required: true
         type: string
 
-      youpip:
+      YTKACE:
+        description: "Integrate YTKace"
+        default: true
+        required: true
+        type: boolean
+        
+      YouMod:
+        description: "Integrate YouMod"
+        default: false
+        required: false
+        type: boolean
+
+      YouPiP:
         description: "Integrate YouPiP"
         default: true
         required: false
         type: boolean
 
-      ytuhd:
-        description: "Integrate YTUHD [INCOMPATIBLE WITH YOUTUBE VERSIONS 21.25.5 AND HIGHER]"
-        default: false
-        required: false
-        type: boolean
-
-      ryd:
+      RYD:
         description: "Integrate Return YouTube Dislikes"
         default: true
         required: false
         type: boolean
 
-      ytabconfig:
+      YTABConfig:
         description: "Integrate YTABConfig"
         default: true
         required: false
         type: boolean
 
-      youquality:
+      YouQuality:
         description: "Integrate YouQuality"
         default: true
         required: false
         type: boolean
 
-      youchoose:
+      YouChooseQuality:
         description: "Integrate YouChooseQuality"
         default: true
         required: false
         type: boolean
 
-      youslider:
+      YouSlider:
         description: "Integrate YouSlider"
         default: true
         required: false
         type: boolean
 
-      ytsilentvote:
+      YTSilentVote:
         description: "Integrate YTSilentVote"
         default: true
         required: false
         type: boolean
 
-      ytweaks:
+      YTweaks:
         description: "Integrate YTweaks"
         default: true
         required: false
         type: boolean
 
-      gonerino:
+      Gonerino:
         description: "Integrate Gonerino"
         default: true
         required: false
         type: boolean
 
-      yougetcaption:
+      YouGetCaption:
         description: "Integrate YouGetCaption"
         default: true
         required: false
         type: boolean
 
-      youspeed:
+      YouSpeed:
         description: "Integrate YouSpeed"
         default: true
         required: false
         type: boolean
 
-      youmute:
-        description: "Integrate YouMute"
-        default: true
-        required: false
-        type: boolean
-
-      youloop:
-        description: "Integrate YouLoop"
-        default: true
-        required: false
-        type: boolean
-
-      demc:
+      DontEatMyContent:
         description: "Integrate DontEatMyContent"
         default: true
         required: false
         type: boolean
 
-      isponsorblock:
+      iSponsorBlock:
         description: "Integrate iSponsorBlock"
         default: true
         required: false
         type: boolean
 
-      youmod:
-        description: "Integrate YouMod"
-        default: true
-        required: false
-        type: boolean
-
-      youpro:
-        description: "Integrate YouPro (Optional)"
-        default: false
-        required: false
-        type: boolean
-
-      alderis:
+      Alderis:
         description: "Integrate Alderis (Color Picker)"
         default: true
         required: false
         type: boolean
 
-      ytkace:
-        description: "Integrate YTKace"
-        default: false
-        required: false
-        type: boolean
-
-      plugin_intents:
-        description: "Inject IntentsExtension.appex"
-        default: false
-        required: false
-        type: boolean
-
-      plugin_notification_content:
-        description: "Inject NotificationContentExtension.appex"
-        default: false
-        required: false
-        type: boolean
-
-      plugin_notification_service:
-        description: "Inject NotificationServiceExtension.appex"
-        default: false
-        required: false
-        type: boolean
-
-      plugin_open_youtube_safari:
-        description: "Inject OpenYoutubeSafariExtension.appex)"
-        default: false
-        required: false
-        type: boolean
-
-      plugin_share:
-        description: "Inject ShareExtension.appex"
-        default: false
-        required: false
-        type: boolean
-
-      plugin_widgetkit:
-        description: "Inject WidgetKitExtension.appex"
-        default: false
-        required: false
+      Inject_Plugins:
+        description: "Inject all Plugins (IntentsExtension, NotificationContent, NotificationService, OpenYoutubeSafari, Share, WidgetKit)"
+        default: true
+        required: true
         type: boolean
 
 concurrency:
@@ -185,12 +131,12 @@ jobs:
   build-tweaks:
     uses: ./.github/workflows/_build_tweaks.yml
     with:
-      youpro: ${{ inputs.youpro }}
+      youpro: false
       youmod: ${{ inputs.youmod }}
       isponsorblock: ${{ inputs.isponsorblock }}
       demc: ${{ inputs.demc }}
       youpip: ${{ inputs.youpip }}
-      ytuhd: ${{ inputs.ytuhd }}
+      ytuhd: false
       ryd: ${{ inputs.ryd }}
       ytabconfig: ${{ inputs.ytabconfig }}
       youquality: ${{ inputs.youquality }}
@@ -201,8 +147,8 @@ jobs:
       gonerino: ${{ inputs.gonerino }}
       yougetcaption: ${{ inputs.yougetcaption }}
       youspeed: ${{ inputs.youspeed }}
-      youmute: ${{ inputs.youmute }}
-      youloop: ${{ inputs.youloop }}
+      youmute: false
+      youloop: false
       opensafari: false
       alderis: ${{ inputs.alderis }}
       ytkace: ${{ inputs.ytkace }}
@@ -223,42 +169,13 @@ jobs:
           path: ${{ github.workspace }}
 
       - name: Checkout Repository (for Plugins)
-        if: >
-          inputs.plugin_intents == true ||
-          inputs.plugin_notification_content == true ||
-          inputs.plugin_notification_service == true ||
-          inputs.plugin_open_youtube_safari == true ||
-          inputs.plugin_share == true ||
-          inputs.plugin_widgetkit == true
+        if: inputs.inject_plugins == true
         uses: actions/checkout@v6.0.3
 
       - name: Copy selected Plugins to workspace
-        if: >
-          inputs.plugin_intents == true ||
-          inputs.plugin_notification_content == true ||
-          inputs.plugin_notification_service == true ||
-          inputs.plugin_open_youtube_safari == true ||
-          inputs.plugin_share == true ||
-          inputs.plugin_widgetkit == true
+        if: inputs.inject_plugins == true
         run: |
-          if [ "${{ inputs.plugin_intents }}" = "true" ]; then
-            cp -r Plugins/IntentsExtension.appex ${{ github.workspace }}/
-          fi
-          if [ "${{ inputs.plugin_notification_content }}" = "true" ]; then
-            cp -r Plugins/NotificationContentExtension.appex ${{ github.workspace }}/
-          fi
-          if [ "${{ inputs.plugin_notification_service }}" = "true" ]; then
-            cp -r Plugins/NotificationServiceExtension.appex ${{ github.workspace }}/
-          fi
-          if [ "${{ inputs.plugin_open_youtube_safari }}" = "true" ]; then
-            cp -r Plugins/OpenYoutubeSafariExtension.appex ${{ github.workspace }}/
-          fi
-          if [ "${{ inputs.plugin_share }}" = "true" ]; then
-            cp -r Plugins/ShareExtension.appex ${{ github.workspace }}/
-          fi
-          if [ "${{ inputs.plugin_widgetkit }}" = "true" ]; then
-            cp -r Plugins/WidgetKitExtension.appex ${{ github.workspace }}/
-          fi
+          cp -r Plugins/*.appex ${{ github.workspace }}/
 
       - name: List Downloaded Files
         run: |
@@ -269,7 +186,7 @@ jobs:
       - name: Hide Sensitive Inputs
         uses: levibostian/action-hide-sensitive-inputs@1.2.0
         with:
-          exclude_inputs: bundle_id,display_name,demc,isponsorblock,youpip,ytuhd,ryd,ytabconfig,youquality,youslider,ytsilentvote,ytweaks,youchoose,gonerino,yougetcaption,youspeed,youmute,youloop,youmod,youpro,alderis,ytkace,plugin_intents,plugin_notification_content,plugin_notification_service,plugin_open_youtube_safari,plugin_share,plugin_widgetkit
+          exclude_inputs: bundle_id,display_name,demc,isponsorblock,youpip,ryd,ytabconfig,youquality,youslider,ytsilentvote,ytweaks,youchoose,gonerino,yougetcaption,youspeed,youmod,alderis,ytkace,inject_plugins
 
       - name: Download and Validate IPA
         run: |
