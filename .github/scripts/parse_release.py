@@ -6,7 +6,7 @@ with open('release.json', 'r') as f:
 print('tag_name:', data.get('tag_name', '(없음)'))
 print('message:', data.get('message', '(없음)'))
 
-version = data.get('tag_name', 'unknown').lstrip('v')
+version = os.environ.get('TWEAK_VERSION_OVERRIDE') or data.get('tag_name', 'unknown').lstrip('v')
 notes = data.get('body', '') or ''
 
 # 'YouTube X.XX requires iOS ~' 줄부터 아래 전체 제거
