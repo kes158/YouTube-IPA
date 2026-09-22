@@ -131,7 +131,7 @@ runs:
         echo "ytweaks=$(get_hash fosterbarnes/YTweaks)"                              >> $GITHUB_OUTPUT
         echo "yougetcaption=$(get_hash PoomSmart/YouGetCaption)"                     >> $GITHUB_OUTPUT
         echo "iamyoutube=$(get_hash PoomSmart/IAmYouTube)"                           >> $GITHUB_OUTPUT
-        echo "youmod=$(get_hash Tonwalter888/YouMod)"                               >> $GITHUB_OUTPUT
+        echo "youmod=$(get_hash kes158/YouMod)"                                     >> $GITHUB_OUTPUT
 
         if [ "${{ inputs.isponsorblock }}" = "true" ]; then
           echo "isponsorblock=$(get_hash Galactic-Dev/iSponsorBlock)"                >> $GITHUB_OUTPUT
