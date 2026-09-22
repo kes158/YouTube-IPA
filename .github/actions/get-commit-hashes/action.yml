@@ -112,6 +112,13 @@ runs:
           git ls-remote "https://github.com/$1.git" "${2:-HEAD}" | cut -f1
         }
 
+        # release 기반(다운로드)으로 가져오는 트윅용: 커밋이 아니라 release tag+asset 갱신시각으로 캐시 키를 잡는다.
+        # 브랜치에 새 커밋이 없어도, 또는 다른 브랜치에서 release를 새로 올려도 release가 바뀌면 반드시 캐시가 무효화된다.
+        get_release_id() {
+          curl -s -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/$1/releases/latest" \
+            | jq -r '(.tag_name // "notag") + "-" + ((.assets[0].updated_at) // "noasset")'
+        }
+
         echo "theos=$(get_hash roothide/theos)"                                      >> $GITHUB_OUTPUT
         echo "youpip=$(get_hash PoomSmart/YouPiP)"                                   >> $GITHUB_OUTPUT
         echo "ytuhd=$(get_hash Tonwalter888/YTUHD)"                                  >> $GITHUB_OUTPUT
@@ -127,11 +134,11 @@ runs:
         echo "youslider=$(get_hash PoomSmart/YouSlider)"                             >> $GITHUB_OUTPUT
         echo "youchoose=$(get_hash Tonwalter888/YouChooseQuality)"                   >> $GITHUB_OUTPUT
         echo "ytsilentvote=$(get_hash PoomSmart/YTSilentVote)"                       >> $GITHUB_OUTPUT
-        echo "gonerino=$(get_hash kes158/Gonerino kes158-patch-1)"                   >> $GITHUB_OUTPUT
+        echo "gonerino=$(get_release_id kes158/Gonerino)"                             >> $GITHUB_OUTPUT
         echo "ytweaks=$(get_hash fosterbarnes/YTweaks)"                              >> $GITHUB_OUTPUT
         echo "yougetcaption=$(get_hash PoomSmart/YouGetCaption)"                     >> $GITHUB_OUTPUT
         echo "iamyoutube=$(get_hash PoomSmart/IAmYouTube)"                           >> $GITHUB_OUTPUT
-        echo "youmod=$(get_hash kes158/YouMod)"                                     >> $GITHUB_OUTPUT
+        echo "youmod=$(get_release_id kes158/YouMod)"                                >> $GITHUB_OUTPUT
 
         if [ "${{ inputs.isponsorblock }}" = "true" ]; then
           echo "isponsorblock=$(get_hash Galactic-Dev/iSponsorBlock)"                >> $GITHUB_OUTPUT
