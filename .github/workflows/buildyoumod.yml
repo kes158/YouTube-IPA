@@ -21,12 +21,6 @@ on:
         required: true
         type: string
 
-      opensafari:
-        description: "Integrate Open in YouTube (Safari Extension)"
-        default: true
-        required: false
-        type: boolean
-
       youpip:
         description: "Integrate YouPiP"
         default: true
@@ -148,37 +142,37 @@ on:
         type: boolean
 
       plugin_intents:
-        description: "[Plugin] Inject IntentsExtension.appex"
+        description: "Inject IntentsExtension.appex"
         default: false
         required: false
         type: boolean
 
       plugin_notification_content:
-        description: "[Plugin] Inject NotificationContentExtension.appex"
+        description: "Inject NotificationContentExtension.appex"
         default: false
         required: false
         type: boolean
 
       plugin_notification_service:
-        description: "[Plugin] Inject NotificationServiceExtension.appex"
+        description: "Inject NotificationServiceExtension.appex"
         default: false
         required: false
         type: boolean
 
       plugin_open_youtube_safari:
-        description: "[Plugin] Inject OpenYoutubeSafariExtension.appex (from Plugins/)"
+        description: "Inject OpenYoutubeSafariExtension.appex)"
         default: false
         required: false
         type: boolean
 
       plugin_share:
-        description: "[Plugin] Inject ShareExtension.appex"
+        description: "Inject ShareExtension.appex"
         default: false
         required: false
         type: boolean
 
       plugin_widgetkit:
-        description: "[Plugin] Inject WidgetKitExtension.appex"
+        description: "Inject WidgetKitExtension.appex"
         default: false
         required: false
         type: boolean
@@ -209,7 +203,7 @@ jobs:
       youspeed: ${{ inputs.youspeed }}
       youmute: ${{ inputs.youmute }}
       youloop: ${{ inputs.youloop }}
-      opensafari: ${{ inputs.opensafari }}
+      opensafari: false
       alderis: ${{ inputs.alderis }}
       ytkace: ${{ inputs.ytkace }}
 
@@ -275,7 +269,7 @@ jobs:
       - name: Hide Sensitive Inputs
         uses: levibostian/action-hide-sensitive-inputs@1.2.0
         with:
-          exclude_inputs: bundle_id,display_name,demc,isponsorblock,opensafari,youpip,ytuhd,ryd,ytabconfig,youquality,youslider,ytsilentvote,ytweaks,youchoose,gonerino,yougetcaption,youspeed,youmute,youloop,youmod,youpro,alderis,ytkace,plugin_intents,plugin_notification_content,plugin_notification_service,plugin_open_youtube_safari,plugin_share,plugin_widgetkit
+          exclude_inputs: bundle_id,display_name,demc,isponsorblock,youpip,ytuhd,ryd,ytabconfig,youquality,youslider,ytsilentvote,ytweaks,youchoose,gonerino,yougetcaption,youspeed,youmute,youloop,youmod,youpro,alderis,ytkace,plugin_intents,plugin_notification_content,plugin_notification_service,plugin_open_youtube_safari,plugin_share,plugin_widgetkit
 
       - name: Download and Validate IPA
         run: |
@@ -369,10 +363,6 @@ jobs:
       - name: Inject Tweaks Into IPA
         run: |
           tweaks=""
-          # opensafari (clone에서 가져오는 기존 방식)
-          if [ "${{ inputs.opensafari }}" = "true" ] && [ -e "OpenYouTubeSafariExtension.appex" ]; then
-            tweaks="OpenYouTubeSafariExtension.appex"
-          fi
           # Plugins/ 폴더에서 복사한 .appex들
           for appex in IntentsExtension.appex NotificationContentExtension.appex NotificationServiceExtension.appex OpenYoutubeSafariExtension.appex ShareExtension.appex WidgetKitExtension.appex; do
             [ -e "$appex" ] && tweaks="$tweaks $appex"
