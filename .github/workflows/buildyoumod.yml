@@ -243,7 +243,12 @@ jobs:
       - name: Get YouTube Version
         run: |
           unzip -q youtube.ipa -d ytextracted
-          echo "YT_VERSION=$(grep -A 1 'CFBundleVersion' ytextracted/Payload/YouTube.app/Info.plist | grep '<string>' | awk -F'[><]' '{print $3}')" >> $GITHUB_ENV
+          YT_VERSION=$(plutil -extract CFBundleVersion raw -o - ytextracted/Payload/YouTube.app/Info.plist)
+          if [ -z "$YT_VERSION" ]; then
+            echo "::error::Info.plist에서 CFBundleVersion을 읽지 못했습니다."
+            exit 1
+          fi
+          echo "YT_VERSION=$YT_VERSION" >> $GITHUB_ENV
           rm -rf ytextracted
 
       - name: Get Main Tweak Version and Release Notes
