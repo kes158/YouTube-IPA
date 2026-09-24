@@ -285,7 +285,7 @@ jobs:
 
       - name: Set Release Title
         run: |
-          RELEASE_TITLE="${{ env.TWEAK_NAME }}_v${{ env.TWEAK_VERSION }}_v${{ env.YT_VERSION }}"
+          RELEASE_TITLE="${{ env.TWEAK_NAME }}_${{ env.TWEAK_VERSION }}_${{ env.YT_VERSION }}"
           echo "RELEASE_TITLE=$RELEASE_TITLE" >> $GITHUB_ENV
 
       - name: Inject Tweaks Into IPA
