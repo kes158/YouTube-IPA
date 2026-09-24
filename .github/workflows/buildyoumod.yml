@@ -176,8 +176,7 @@ jobs:
     env:
       HOMEBREW_NO_ENV_HINTS: 1
     steps:
-      - name: Checkout Repository (for Plugins)
-        if: inputs.Inject_Plugins == true
+      - name: Checkout Repository
         uses: actions/checkout@v6.0.3
 
       - name: Download Built Debs
