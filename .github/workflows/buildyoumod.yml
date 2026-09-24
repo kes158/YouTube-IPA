@@ -255,6 +255,21 @@ jobs:
         env:
           INPUT_YTKACE: ${{ inputs.YTKACE }}
           INPUT_YOUMOD: ${{ inputs.YouMod }}
+          INPUT_YOUPIP: ${{ inputs.YouPiP }}
+          INPUT_RYD: ${{ inputs.RYD }}
+          INPUT_YTABCONFIG: ${{ inputs.YTABConfig }}
+          INPUT_YOUQUALITY: ${{ inputs.YouQuality }}
+          INPUT_YOUCHOOSEQUALITY: ${{ inputs.YouChooseQuality }}
+          INPUT_YOUSLIDER: ${{ inputs.YouSlider }}
+          INPUT_YTSILENTVOTE: ${{ inputs.YTSilentVote }}
+          INPUT_YTWEAKS: ${{ inputs.YTweaks }}
+          INPUT_GONERINO: ${{ inputs.Gonerino }}
+          INPUT_YOUGETCAPTION: ${{ inputs.YouGetCaption }}
+          INPUT_YOUSPEED: ${{ inputs.YouSpeed }}
+          INPUT_DONTEATMYCONTENT: ${{ inputs.DontEatMyContent }}
+          INPUT_ISPONSORBLOCK: ${{ inputs.iSponsorBlock }}
+          INPUT_ALDERIS: ${{ inputs.Alderis }}
+          INPUT_INJECT_PLUGINS: ${{ inputs.Inject_Plugins }}
           GH_TOKEN: ${{ github.token }}
         run: |
           if [ "$INPUT_YTKACE" = "true" ]; then
