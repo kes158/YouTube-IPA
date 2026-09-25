@@ -286,31 +286,23 @@ jobs:
         run: |
           if [ "$INPUT_YTKACE" = "true" ]; then
             TWEAK_NAME="YTKACE"
-            RELEASE_JSON=$(curl -s \
+            curl -s \
               -H "Accept: application/vnd.github+json" \
               -H "Authorization: Bearer $GH_TOKEN" \
-              https://api.github.com/repos/itzzace/ytkace/releases/latest)
-            TWEAK_VERSION=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; v=json.load(sys.stdin).get('tag_name','unknown'); print(v.lstrip('v'))")
-            # RELEASE_NOTES를 $GITHUB_ENV에 안전하게 multiline 기록
-            {
-              echo "RELEASE_NOTES<<__NOTES_EOF__"
-              echo "$RELEASE_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('body',''))"
-              echo "__NOTES_EOF__"
-            } >> "$GITHUB_ENV"
+              https://api.github.com/repos/itzzace/ytkace/releases/latest \
+              > release.json
+            TWEAK_VERSION=$(python3 -c "import json; d=json.load(open('release.json')); print(d.get('tag_name','unknown').lstrip('v'))")
+            python3 -c "import json,re; d=json.load(open('release.json')); notes=d.get('body','') or ''; notes=re.split(r'YouTube\s+[\d.]+\s+requires\s+iOS',notes)[0].rstrip(); open('release_notes.md','w').write(notes)"
 
           elif [ "$INPUT_YOUMOD" = "true" ]; then
             TWEAK_NAME="YouMod"
-            RELEASE_JSON=$(curl -s \
+            curl -s \
               -H "Accept: application/vnd.github+json" \
               -H "Authorization: Bearer $GH_TOKEN" \
-              https://api.github.com/repos/Tonwalter888/YouMod/releases/latest)
-            TWEAK_VERSION=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; v=json.load(sys.stdin).get('tag_name','unknown'); print(v.lstrip('v'))")
-            # RELEASE_NOTES를 $GITHUB_ENV에 안전하게 multiline 기록
-            {
-              echo "RELEASE_NOTES<<__NOTES_EOF__"
-              echo "$RELEASE_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('body',''))"
-              echo "__NOTES_EOF__"
-            } >> "$GITHUB_ENV"
+              https://api.github.com/repos/Tonwalter888/YouMod/releases/latest \
+              > release.json
+            TWEAK_VERSION=$(python3 -c "import json; d=json.load(open('release.json')); print(d.get('tag_name','unknown').lstrip('v'))")
+            python3 -c "import json,re; d=json.load(open('release.json')); notes=d.get('body','') or ''; notes=re.split(r'YouTube\s+[\d.]+\s+requires\s+iOS',notes)[0].rstrip(); open('release_notes.md','w').write(notes)"
 
           elif [ "$INPUT_YTPLUS" = "true" ]; then
             TWEAK_NAME="YTPlus"
@@ -321,43 +313,32 @@ jobs:
             fi
             TWEAK_VERSION=$(basename "$YTPLUS_DEB" | sed 's/com_dvntm_ytlite_//' | sed 's/_iphoneos.*//' | sed 's/_/./g')
 
-            # 주입된 트윅/플러그인 목록 생성 (실제 개행 사용 — \n + printf 대신)
             TWEAKS_LIST=""
-            [ "$INPUT_YOUPIP" = "true" ]          && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YouPiP"
-            [ "$INPUT_RYD" = "true" ]             && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- Return YouTube Dislikes"
-            [ "$INPUT_YTABCONFIG" = "true" ]      && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YTABConfig"
-            [ "$INPUT_YOUQUALITY" = "true" ]      && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YouQuality"
+            [ "$INPUT_YOUPIP" = "true" ]           && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YouPiP"
+            [ "$INPUT_RYD" = "true" ]              && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- Return YouTube Dislikes"
+            [ "$INPUT_YTABCONFIG" = "true" ]       && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YTABConfig"
+            [ "$INPUT_YOUQUALITY" = "true" ]       && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YouQuality"
             [ "$INPUT_YOUCHOOSEQUALITY" = "true" ] && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YouChooseQuality"
-            [ "$INPUT_YOUSLIDER" = "true" ]       && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YouSlider"
-            [ "$INPUT_YTSILENTVOTE" = "true" ]    && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YTSilentVote"
-            [ "$INPUT_YTWEAKS" = "true" ]         && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YTweaks"
-            [ "$INPUT_GONERINO" = "true" ]        && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- Gonerino"
-            [ "$INPUT_YOUGETCAPTION" = "true" ]   && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YouGetCaption"
-            [ "$INPUT_YOUSPEED" = "true" ]        && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YouSpeed"
+            [ "$INPUT_YOUSLIDER" = "true" ]        && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YouSlider"
+            [ "$INPUT_YTSILENTVOTE" = "true" ]     && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YTSilentVote"
+            [ "$INPUT_YTWEAKS" = "true" ]          && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YTweaks"
+            [ "$INPUT_GONERINO" = "true" ]         && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- Gonerino"
+            [ "$INPUT_YOUGETCAPTION" = "true" ]    && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YouGetCaption"
+            [ "$INPUT_YOUSPEED" = "true" ]         && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- YouSpeed"
             [ "$INPUT_DONTEATMYCONTENT" = "true" ] && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- DontEatMyContent"
-            [ "$INPUT_ISPONSORBLOCK" = "true" ]   && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- iSponsorBlock"
-            [ "$INPUT_ALDERIS" = "true" ]         && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- Alderis"
-            [ "$INPUT_INJECT_PLUGINS" = "true" ]  && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- Plugins (IntentsExtension, NotificationContent, NotificationService, OpenYoutubeSafari, Share, WidgetKit)"
+            [ "$INPUT_ISPONSORBLOCK" = "true" ]    && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- iSponsorBlock"
+            [ "$INPUT_ALDERIS" = "true" ]          && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- Alderis"
+            [ "$INPUT_INJECT_PLUGINS" = "true" ]   && TWEAKS_LIST="${TWEAKS_LIST}"$'\n'"- Plugins (IntentsExtension, NotificationContent, NotificationService, OpenYoutubeSafari, Share, WidgetKit)"
 
-            # RELEASE_NOTES를 $GITHUB_ENV에 안전하게 multiline 기록
-            # EOF 대신 충돌 없는 구분자 사용, printf 없이 echo로 직접 개행 처리
             {
-              echo "RELEASE_NOTES<<__YTPLUS_NOTES_EOF__"
-              echo "# YTPlus_v${TWEAK_VERSION}_v${YT_VERSION}"
-              echo ""
               echo "## 포함된 트윅 및 플러그인"
-              printf "- YTPlus v%s%s\n" "${TWEAK_VERSION}" "${TWEAKS_LIST}"
-              echo "__YTPLUS_NOTES_EOF__"
-            } >> "$GITHUB_ENV"
+              echo "- YTPlus v${TWEAK_VERSION}${TWEAKS_LIST}"
+            } > release_notes.md
 
           else
             TWEAK_NAME="YouTube"
             TWEAK_VERSION="unknown"
-            {
-              echo "RELEASE_NOTES<<__YTPLUS_NOTES_EOF__"
-              echo ""
-              echo "__YTPLUS_NOTES_EOF__"
-            } >> "$GITHUB_ENV"
+            echo "" > release_notes.md
           fi
 
           echo "TWEAK_NAME=$TWEAK_NAME" >> $GITHUB_ENV
@@ -428,7 +409,7 @@ jobs:
           gh release create "$TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --title "${{ env.RELEASE_TITLE }}" \
-            --notes "${{ env.RELEASE_NOTES }}" \
+            --notes-file release_notes.md \
             $RELEASE_FILES
 
       - name: Job Summary - Build Complete
