@@ -234,15 +234,16 @@ jobs:
           cd ..
           gzip -f -9 data.tar
 
-          # ⚠️ 기존 $DEB를 그대로 두고 ar rc로 "갱신"하면 안 됨.
-          # 기존 아카이브 안에 남아있던 원본 data.tar.lzma 멤버가 지워지지
-          # 않고 새 data.tar.gz와 함께 중복으로 남거나(GNU ar), macOS의 ar에서는
-          # 아예 깨진 초소형 파일이 되어버리는 문제가 있었음(실제 원인).
-          # → 반드시 기존 파일을 삭제한 뒤 새 아카이브로 처음부터 다시 생성해야
-          #   플랫폼(GNU ar / BSD ar) 관계없이 항상 debian-binary·control·data
-          #   3개 멤버만 깨끗하게 들어간 deb가 만들어짐.
+          # ⚠️ macOS의 ar는 아카이브 생성 시 ranlib를 자동 호출해 심볼 테이블
+          # (__.SYMDEF SORTED)을 만들려고 시도함. debian-binary/control.tar.gz/
+          # data.tar.gz는 Mach-O 오브젝트 파일이 아니므로 ranlib가 이를 전부
+          # 버리고 빈 심볼 테이블 멤버 하나만 남기는 문제가 실제로 확인됨
+          # (재조립 결과: 96 bytes, 멤버 1개 "__.SYMDEF SORTED").
+          # → -S 로 심볼 테이블 생성을 명시적으로 꺼서 ranlib 경로 자체를 회피.
+          #   기존 $DEB를 먼저 지우고 새로 생성해야 이전 data.tar.lzma 등
+          #   불필요한 멤버가 섞여 들어가지 않음.
           rm -f "$DEB"
-          ar rc "$DEB" debian-binary control.tar.* data.tar.gz
+          ar rcS "$DEB" debian-binary control.tar.* data.tar.gz
 
           # ── 재조립 결과 검증 (조용히 깨진 채로 넘어가지 않도록) ──────
           MEMBER_COUNT=$(ar t "$DEB" | wc -l | tr -d ' ')
