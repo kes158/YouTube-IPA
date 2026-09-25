@@ -439,6 +439,8 @@ jobs:
         if: inputs.ythold == true && steps.cache_tweaks.outputs.cache_ythold_hit != 'true'
         run: |
           git clone --quiet --depth=1 https://github.com/joshuaseltzer/YTHoldForSpeed.git
+          mkdir -p "YTHoldForSpeed/layout/Library/Application Support/YTHoldForSpeed.bundle/ko.lproj"
+          cp "${{ github.workspace }}/.github/Tweaks/YTHoldForSpeed-ko.strings" "YTHoldForSpeed/layout/Library/Application Support/YTHoldForSpeed.bundle/ko.lproj/Localizable.strings"
           cd YTHoldForSpeed && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless ARCHS=arm64 TARGET=iphone:clang:latest:15.0
           mv packages/*.deb ${{ github.workspace }}/ythold.deb
 
