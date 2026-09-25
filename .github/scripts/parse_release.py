@@ -45,6 +45,7 @@ TWEAK_FLAGS = [
     ('YouGetCaption',           'INPUT_YOUGETCAPTION'),
     ('iSponsorBlock',           'INPUT_ISPONSORBLOCK'),
     ('Alderis',                 'INPUT_ALDERIS'),
+    ('YTHoldForSpeed',          'INPUT_YTHOLD'),
 ]
 
 included = []
