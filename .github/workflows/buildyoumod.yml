@@ -325,6 +325,46 @@ jobs:
           echo "YT_VERSION=$YT_VERSION" >> $GITHUB_ENV
           rm -rf ytextracted
 
+      - name: Remove UIDesignRequiresCompatibility for Liquid Glass
+        run: |
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import plistlib
+
+          ipa = Path("youtube.ipa")
+          plist_path = "Payload/YouTube.app/Info.plist"
+          temp_ipa = ipa.with_suffix(".patched.ipa")
+          found_app_plist = False
+          removed_key = False
+
+          with ZipFile(ipa, "r") as source, ZipFile(temp_ipa, "w") as patched:
+              for item in source.infolist():
+                  data = source.read(item.filename)
+                  if item.filename == plist_path:
+                      found_app_plist = True
+                      original = data
+                      info = plistlib.loads(data)
+                      if "UIDesignRequiresCompatibility" in info:
+                          del info["UIDesignRequiresCompatibility"]
+                          plist_format = plistlib.FMT_BINARY if original.startswith(b"bplist") else plistlib.FMT_XML
+                          data = plistlib.dumps(info, fmt=plist_format, sort_keys=False)
+                          removed_key = True
+                      if "UIDesignRequiresCompatibility" in plistlib.loads(data):
+                          raise RuntimeError("UIDesignRequiresCompatibility remains in app Info.plist")
+                  patched.writestr(item, data)
+
+          if not found_app_plist:
+              temp_ipa.unlink(missing_ok=True)
+              raise FileNotFoundError(f"{plist_path} was not found in youtube.ipa")
+
+          temp_ipa.replace(ipa)
+          if removed_key:
+              print(f"Removed UIDesignRequiresCompatibility from {plist_path}")
+          else:
+              print(f"{plist_path} already had no UIDesignRequiresCompatibility key")
+          PYTHON
+
       - name: Get Main Tweak Version and Release Notes
         env:
           INPUT_YTKACE: ${{ inputs.YTKACE }}
@@ -404,6 +444,21 @@ jobs:
             [ -f "$f" ] && tweaks="$tweaks $f"
           done
           cyan -i youtube.ipa -o "${{ env.RELEASE_TITLE }}.ipa" -uesf $tweaks -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
+
+      - name: Verify Liquid Glass plist change in IPA
+        run: |
+          python3 - <<'PYTHON'
+          from zipfile import ZipFile
+          import plistlib
+
+          ipa = "${{ env.RELEASE_TITLE }}.ipa"
+          plist_path = "Payload/YouTube.app/Info.plist"
+          with ZipFile(ipa) as archive:
+              info = plistlib.loads(archive.read(plist_path))
+          if "UIDesignRequiresCompatibility" in info:
+              raise SystemExit("::error::UIDesignRequiresCompatibility is still present in the built IPA")
+          print(f"Verified: UIDesignRequiresCompatibility is absent from {plist_path}")
+          PYTHON
 
       - name: Collect Main Tweak Deb for Release
         env:
