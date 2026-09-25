@@ -33,6 +33,12 @@ on:
         required: false
         type: boolean
 
+      YTPlus:
+        description: "Integrate YTPlus"
+        default: false
+        required: false
+        type: boolean
+
       YouMod_Repository:
         description: "YouMod source repository (owner/repo)"
         default: "kes158/YouMod"
@@ -44,12 +50,6 @@ on:
         default: "Edit-Settings"
         required: false
         type: string
-
-      YTPlus:
-        description: "Integrate YTPlus (bundled .deb from .github/Tweaks/)"
-        default: false
-        required: false
-        type: boolean
 
       YouPiP:
         description: "Integrate YouPiP"
