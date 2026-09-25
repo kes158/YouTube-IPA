@@ -45,6 +45,12 @@ on:
         required: false
         type: string
 
+      YTPlus:
+        description: "Integrate YTPlus (bundled .deb from .github/Tweaks/)"
+        default: false
+        required: false
+        type: boolean
+
       YouPiP:
         description: "Integrate YouPiP"
         default: true
@@ -190,6 +196,11 @@ jobs:
         run: |
           cp -r Plugins/*.appex ${{ github.workspace }}/
 
+      - name: Copy YTPlus deb to workspace
+        if: inputs.YTPlus == true
+        run: |
+          cp .github/Tweaks/com_dvntm_ytlite_6_0b1_iphoneos_arm64.deb ${{ github.workspace }}/
+
       - name: List Downloaded Files
         run: |
           echo "Files downloaded from artifacts:"
@@ -199,7 +210,7 @@ jobs:
       - name: Hide Sensitive Inputs
         uses: levibostian/action-hide-sensitive-inputs@1.2.0
         with:
-          exclude_inputs: bundle_id,display_name,YTKACE,YouMod,YouPiP,RYD,YTABConfig,YouQuality,YouChooseQuality,YouSlider,YTSilentVote,YTweaks,Gonerino,YouGetCaption,YouSpeed,DontEatMyContent,iSponsorBlock,Alderis,Inject_Plugins
+          exclude_inputs: bundle_id,display_name,YTKACE,YouMod,YTPlus,YouPiP,RYD,YTABConfig,YouQuality,YouChooseQuality,YouSlider,YTSilentVote,YTweaks,Gonerino,YouGetCaption,YouSpeed,DontEatMyContent,iSponsorBlock,Alderis,Inject_Plugins
 
       - name: Download and Validate IPA
         run: |
@@ -255,6 +266,7 @@ jobs:
         env:
           INPUT_YTKACE: ${{ inputs.YTKACE }}
           INPUT_YOUMOD: ${{ inputs.YouMod }}
+          INPUT_YTPLUS: ${{ inputs.YTPlus }}
           INPUT_YOUPIP: ${{ inputs.YouPiP }}
           INPUT_RYD: ${{ inputs.RYD }}
           INPUT_YTABCONFIG: ${{ inputs.YTABConfig }}
@@ -274,30 +286,57 @@ jobs:
         run: |
           if [ "$INPUT_YTKACE" = "true" ]; then
             TWEAK_NAME="YTKACE"
-            curl -s \
+            RELEASE_JSON=$(curl -s \
               -H "Accept: application/vnd.github+json" \
               -H "Authorization: Bearer $GH_TOKEN" \
-              https://api.github.com/repos/itzzace/ytkace/releases/latest \
-              > release.json
+              https://api.github.com/repos/itzzace/ytkace/releases/latest)
+            TWEAK_VERSION=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; v=json.load(sys.stdin).get('tag_name','unknown'); print(v.lstrip('v'))")
+            RELEASE_NOTES=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('body',''))")
+
           elif [ "$INPUT_YOUMOD" = "true" ]; then
             TWEAK_NAME="YouMod"
-            if [ ! -s youmod_version.txt ]; then
-              echo "::error::YouMod package version metadata was not included in the build artifact"
-              exit 1
-            fi
-            echo "{}" > release.json
+            RELEASE_JSON=$(curl -s \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              https://api.github.com/repos/Tonwalter888/YouMod/releases/latest)
+            TWEAK_VERSION=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; v=json.load(sys.stdin).get('tag_name','unknown'); print(v.lstrip('v'))")
+            RELEASE_NOTES=$(echo "$RELEASE_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('body',''))")
+
+          elif [ "$INPUT_YTPLUS" = "true" ]; then
+            TWEAK_NAME="YTPlus"
+            TWEAK_VERSION="6.0b1"
+
+            # 주입된 트윅/플러그인 목록 생성
+            TWEAKS_LIST=""
+            [ "$INPUT_YOUPIP" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- YouPiP"
+            [ "$INPUT_RYD" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- Return YouTube Dislikes"
+            [ "$INPUT_YTABCONFIG" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- YTABConfig"
+            [ "$INPUT_YOUQUALITY" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- YouQuality"
+            [ "$INPUT_YOUCHOOSEQUALITY" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- YouChooseQuality"
+            [ "$INPUT_YOUSLIDER" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- YouSlider"
+            [ "$INPUT_YTSILENTVOTE" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- YTSilentVote"
+            [ "$INPUT_YTWEAKS" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- YTweaks"
+            [ "$INPUT_GONERINO" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- Gonerino"
+            [ "$INPUT_YOUGETCAPTION" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- YouGetCaption"
+            [ "$INPUT_YOUSPEED" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- YouSpeed"
+            [ "$INPUT_DONTEATMYCONTENT" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- DontEatMyContent"
+            [ "$INPUT_ISPONSORBLOCK" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- iSponsorBlock"
+            [ "$INPUT_ALDERIS" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- Alderis"
+            [ "$INPUT_INJECT_PLUGINS" = "true" ] && TWEAKS_LIST="$TWEAKS_LIST\n- Plugins (IntentsExtension, NotificationContent, NotificationService, OpenYoutubeSafari, Share, WidgetKit)"
+
+            RELEASE_NOTES="# YTPlus_v${TWEAK_VERSION}_v${{ env.YT_VERSION }}\n\n## 포함된 트윅 및 플러그인\n- YTPlus v${TWEAK_VERSION}${TWEAKS_LIST}"
+
           else
             TWEAK_NAME="YouTube"
-            echo "{}" > release.json
+            TWEAK_VERSION="unknown"
+            RELEASE_NOTES=""
           fi
 
           echo "TWEAK_NAME=$TWEAK_NAME" >> $GITHUB_ENV
-
-          if [ "$INPUT_YOUMOD" = "true" ] && [ "$INPUT_YTKACE" != "true" ]; then
-            TWEAK_VERSION_OVERRIDE="$(cat youmod_version.txt)" python3 .github/scripts/parse_release.py
-          else
-            python3 .github/scripts/parse_release.py
-          fi
+          echo "TWEAK_VERSION=$TWEAK_VERSION" >> $GITHUB_ENV
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
+          printf "%b" "$RELEASE_NOTES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Install cyan
         run: |
@@ -305,7 +344,7 @@ jobs:
 
       - name: Set Release Title
         run: |
-          RELEASE_TITLE="${{ env.TWEAK_NAME }}_${{ env.TWEAK_VERSION }}_${{ env.YT_VERSION }}"
+          RELEASE_TITLE="${{ env.TWEAK_NAME }}_v${{ env.TWEAK_VERSION }}_v${{ env.YT_VERSION }}"
           echo "RELEASE_TITLE=$RELEASE_TITLE" >> $GITHUB_ENV
 
       - name: Inject Tweaks Into IPA
@@ -343,15 +382,14 @@ jobs:
             echo "MAIN_TWEAK_DEBS=" >> $GITHUB_ENV
           fi
 
-      - name: Create a Draft Release
+      - name: Create Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${{ env.RELEASE_TITLE }}"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" &>/dev/null; then
             i=2
-            while gh release view "${TAG}-${i}" --repo "$GITHUB_REPOSITORY" &>/dev/null
-            do
+            while gh release view "${TAG}-${i}" --repo "$GITHUB_REPOSITORY" &>/dev/null; do
               i=$(( i + 1 ))
             done
             TAG="${TAG}-${i}"
@@ -365,16 +403,16 @@ jobs:
           gh release create "$TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --title "${{ env.RELEASE_TITLE }}" \
-            --notes-file release_notes.md \
+            --notes "${{ env.RELEASE_NOTES }}" \
             $RELEASE_FILES
 
       - name: Job Summary - Build Complete
         run: echo -e '### 🛠️ Build YouMod IPA Complete!' >> $GITHUB_STEP_SUMMARY
 
-      - name: Job Summary - Output the Draft Release Link
+      - name: Job Summary - Output the Release Link
         run: |
-          echo -e "### 🚀 Draft Release\n\nDraft release has been created successfully! You can view your release here: https://github.com/${{ github.repository }}/releases" >> $GITHUB_STEP_SUMMARY
+          echo -e "### 🚀 Release\n\nRelease has been created successfully! You can view your release here: https://github.com/${{ github.repository }}/releases" >> $GITHUB_STEP_SUMMARY
 
       - name: Job Summary - Cleanup
         run: |
-          echo -e "### 🧹 Cleanup\n\nYou can remove previous GitHub Actions run here: https://github.com/${{ github.repository }}/actions/workflows/delete-old-workflows-run.yml And if you want to delete old draft releases you have then here: https://github.com/${{ github.repository }}/actions/workflows/delete-old-workflows-run.yml" >> $GITHUB_STEP_SUMMARY
+          echo -e "### 🧹 Cleanup\n\nYou can remove previous GitHub Actions run here: https://github.com/${{ github.repository }}/actions/workflows/delete-old-workflows-run.yml" >> $GITHUB_STEP_SUMMARY
