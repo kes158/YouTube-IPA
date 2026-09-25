@@ -1,7 +1,7 @@
 "HOLD_FOR_SPEED" = "Hold for speed";
 "NORMAL" = "기본 속도";
 "X_SECONDS" = "%@초";
-"HOLD_GESTURE" = "길게 눌러 속도 전환";
+"HOLD_GESTURE" = "YTHoldForSpeed";
 "HOLD_GESTURE_DESC" = "동영상 플레이어의 아무 곳이나 길게 누르면 재생 속도를 기본 속도(1.0배)와 선택한 속도 사이에서 전환합니다.\n\n이 기능을 켜면 YouTube 기본 길게 누르기 동작은 사용할 수 없습니다.";
 "DISABLE_STOCK_GESTURES" = "YouTube 기본 길게 누르기 동작 끄기";
 "DISABLE_STOCK_GESTURES_DESC" = "동영상 플레이어의 기본 길게 누르기 동작을 비활성화합니다.\n\n속도 전환 기능을 켜면 기본 동작은 자동으로 비활성화됩니다.";
