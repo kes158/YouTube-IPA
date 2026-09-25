@@ -234,7 +234,25 @@ jobs:
           cd ..
           gzip -f -9 data.tar
 
+          # ⚠️ 기존 $DEB를 그대로 두고 ar rc로 "갱신"하면 안 됨.
+          # 기존 아카이브 안에 남아있던 원본 data.tar.lzma 멤버가 지워지지
+          # 않고 새 data.tar.gz와 함께 중복으로 남거나(GNU ar), macOS의 ar에서는
+          # 아예 깨진 초소형 파일이 되어버리는 문제가 있었음(실제 원인).
+          # → 반드시 기존 파일을 삭제한 뒤 새 아카이브로 처음부터 다시 생성해야
+          #   플랫폼(GNU ar / BSD ar) 관계없이 항상 debian-binary·control·data
+          #   3개 멤버만 깨끗하게 들어간 deb가 만들어짐.
+          rm -f "$DEB"
           ar rc "$DEB" debian-binary control.tar.* data.tar.gz
+
+          # ── 재조립 결과 검증 (조용히 깨진 채로 넘어가지 않도록) ──────
+          MEMBER_COUNT=$(ar t "$DEB" | wc -l | tr -d ' ')
+          DEB_SIZE=$(stat -f%z "$DEB" 2>/dev/null || stat -c%s "$DEB")
+          echo "  📦 재조립된 deb: ${DEB_SIZE} bytes, 멤버 ${MEMBER_COUNT}개 ($(ar t "$DEB" | tr '\n' ' '))"
+          if [ "$MEMBER_COUNT" -ne 3 ] || [ "$DEB_SIZE" -lt 1000 ]; then
+            echo "::error::재조립된 YTPlus deb이 비정상입니다 (크기: ${DEB_SIZE} bytes, 멤버: ${MEMBER_COUNT}개). ar 재조립 과정에서 손상되었을 수 있습니다."
+            exit 1
+          fi
+
           rm -rf "$WORKDIR"
           echo "  ✅ [YTPlus] Localizable.strings 교체 완료"
 
