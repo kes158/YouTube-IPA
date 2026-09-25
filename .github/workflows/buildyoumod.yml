@@ -304,7 +304,12 @@ jobs:
 
           elif [ "$INPUT_YTPLUS" = "true" ]; then
             TWEAK_NAME="YTPlus"
-            TWEAK_VERSION="6.0b1"
+            YTPLUS_DEB=$(ls .github/Tweaks/com_dvntm_ytlite_*.deb 2>/dev/null | head -1)
+            if [ -z "$YTPLUS_DEB" ]; then
+              echo "::error::YTPlus deb not found in .github/Tweaks/"
+              exit 1
+            fi
+            TWEAK_VERSION=$(basename "$YTPLUS_DEB" | sed 's/com_dvntm_ytlite_//' | sed 's/_iphoneos.*//' | sed 's/_/./g')
 
             # 주입된 트윅/플러그인 목록 생성
             TWEAKS_LIST=""
