@@ -1,0 +1,15 @@
+"HOLD_FOR_SPEED" = "길게 눌러 속도 전환";
+"NORMAL" = "보통";
+"X_SECONDS" = "%@초";
+"HOLD_GESTURE" = "길게 눌러 속도 전환";
+"HOLD_GESTURE_DESC" = "동영상 플레이어의 아무 곳이나 길게 누르면 재생 속도를 기본 속도(1.0배)와 선택한 속도 사이에서 전환합니다.\n\n이 기능을 켜면 YouTube 기본 길게 누르기 동작은 사용할 수 없습니다.";
+"DISABLE_STOCK_GESTURES" = "YouTube 기본 길게 누르기 동작 끄기";
+"DISABLE_STOCK_GESTURES_DESC" = "동영상 플레이어의 기본 길게 누르기 동작을 비활성화합니다.\n\n속도 전환 기능을 켜면 기본 동작은 자동으로 비활성화됩니다.";
+"AUTO_APPLY_SPEED" = "속도 자동 적용";
+"AUTO_APPLY_SPEED_DESC" = "켜면 새 동영상 플레이어가 열릴 때 선택한 재생 속도를 자동으로 적용합니다.";
+"TOGGLE_SPEED" = "전환할 속도";
+"TOGGLE_SPEED_DESC" = "길게 눌렀을 때 전환할 재생 속도를 선택합니다.";
+"HOLD_DURATION" = "길게 누르는 시간";
+"HOLD_DURATION_DESC" = "속도를 전환하기 위해 길게 눌러야 하는 시간입니다.";
+"HAPTIC_FEEDBACK" = "햅틱 피드백";
+"HAPTIC_FEEDBACK_DESC" = "재생 속도가 전환될 때 진동으로 알려줍니다.";
