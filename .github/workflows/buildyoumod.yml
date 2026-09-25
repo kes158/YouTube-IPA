@@ -201,6 +201,43 @@ jobs:
         run: |
           cp .github/Tweaks/com_dvntm_ytlite_6_0b1_iphoneos_arm64.deb ${{ github.workspace }}/
 
+      - name: Patch YTPlus Korean localization
+        if: inputs.YTPlus == true
+        run: |
+          KO_STRINGS=".github/Tweaks/Localizable.strings"
+          if [ ! -f "$KO_STRINGS" ]; then
+            echo "  ⏭️  .github/Tweaks/Localizable.strings 없음 — 원본 번역 그대로 사용"
+            exit 0
+          fi
+
+          DEB="${{ github.workspace }}/com_dvntm_ytlite_6_0b1_iphoneos_arm64.deb"
+          KO_STRINGS_ABS="$(pwd)/$KO_STRINGS"
+          WORKDIR="$(mktemp -d)"
+          cd "$WORKDIR"
+
+          ar x "$DEB"
+          DATA_MEMBER=$(ls data.tar.* | head -1)
+          mkdir data_extracted
+          tar -xf "$DATA_MEMBER" -C data_extracted
+
+          TARGET=$(find data_extracted -path '*/ko.lproj/Localizable.strings' | head -1)
+          if [ -z "$TARGET" ]; then
+            echo "::error::YTPlus deb 안에서 ko.lproj/Localizable.strings를 찾지 못했습니다."
+            exit 1
+          fi
+          echo "  🔤 [YTPlus] 교체 대상: $TARGET"
+          cp "$KO_STRINGS_ABS" "$TARGET"
+
+          # data.tar를 gzip으로 다시 패키징 (원래 압축 형식과 무관하게 호환성 좋은 gzip 사용)
+          cd data_extracted
+          tar --numeric-owner --owner=0 --group=0 -cf ../data.tar .
+          cd ..
+          gzip -f -9 data.tar
+
+          ar rc "$DEB" debian-binary control.tar.* data.tar.gz
+          rm -rf "$WORKDIR"
+          echo "  ✅ [YTPlus] Localizable.strings 교체 완료"
+
       - name: List Downloaded Files
         run: |
           echo "Files downloaded from artifacts:"
