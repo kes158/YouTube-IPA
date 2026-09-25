@@ -315,7 +315,7 @@ runs:
       id: cache_ythold
       with:
         path: ${{ github.workspace }}/ythold.deb
-        key: ythold-${{ inputs.ythold_commit }}-sdk${{ inputs.sdk_version }}
+        key: ythold-ko-l10n1-${{ inputs.ythold_commit }}-sdk${{ inputs.sdk_version }}
 
     - uses: actions/cache@v5.0.5
       if: inputs.volumeboost == 'true'
