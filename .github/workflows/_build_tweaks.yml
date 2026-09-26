@@ -3,10 +3,6 @@ name: Tweaks
 on:
   workflow_call:
     inputs:
-      youpro:
-        type: boolean
-        required: false
-        default: false
       isponsorblock:
         type: boolean
         required: false
