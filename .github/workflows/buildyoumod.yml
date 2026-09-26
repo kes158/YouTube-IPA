@@ -21,23 +21,16 @@ on:
         required: true
         type: string
 
-      YTKACE:
-        description: "Integrate YTKace"
-        default: true
+      main_tweak:
+        description: "Main Tweak (YTKACE / YouMod / YTPlus / None)"
+        default: "YTKACE"
         required: true
-        type: boolean
-
-      YouMod:
-        description: "Integrate YouMod"
-        default: false
-        required: false
-        type: boolean
-
-      YTPlus:
-        description: "Integrate YTPlus"
-        default: false
-        required: false
-        type: boolean
+        type: choice
+        options:
+          - YTKACE
+          - YouMod
+          - YTPlus
+          - None
 
       YouMod_Repository:
         description: "YouMod source repository (owner/repo)"
@@ -155,8 +148,7 @@ jobs:
   build-tweaks:
     uses: ./.github/workflows/_build_tweaks.yml
     with:
-      youpro: false
-      youmod: ${{ inputs.YouMod }}
+      youmod: ${{ inputs.main_tweak == 'YouMod' }}
       youmod_repository: ${{ inputs.YouMod_Repository }}
       youmod_ref: ${{ inputs.YouMod_Ref }}
       isponsorblock: ${{ inputs.iSponsorBlock }}
@@ -177,7 +169,7 @@ jobs:
       youloop: false
       opensafari: false
       alderis: ${{ inputs.Alderis }}
-      ytkace: ${{ inputs.YTKACE }}
+      ytkace: ${{ inputs.main_tweak == 'YTKACE' }}
       ythold: ${{ inputs.YTHold }}
 
   package:
@@ -199,17 +191,17 @@ jobs:
           path: ${{ github.workspace }}
 
       - name: Copy selected Plugins to workspace
-        if: inputs.Inject_Plugins == true
+        if: inputs.Inject_Plugins == 'true' || inputs.Inject_Plugins == true
         run: |
           cp -r Plugins/*.appex ${{ github.workspace }}/
 
       - name: Copy YTPlus deb to workspace
-        if: inputs.YTPlus == true
+        if: inputs.main_tweak == 'YTPlus'
         run: |
           cp .github/Tweaks/com_dvntm_ytlite_6_0b1_iphoneos_arm64.deb ${{ github.workspace }}/
 
       - name: Patch YTPlus Korean localization
-        if: inputs.YTPlus == true
+        if: inputs.main_tweak == 'YTPlus'
         run: |
           KO_STRINGS=".github/Tweaks/Localizable.strings"
           if [ ! -f "$KO_STRINGS" ]; then
@@ -367,9 +359,9 @@ jobs:
 
       - name: Get Main Tweak Version and Release Notes
         env:
-          INPUT_YTKACE: ${{ inputs.YTKACE }}
-          INPUT_YOUMOD: ${{ inputs.YouMod }}
-          INPUT_YTPLUS: ${{ inputs.YTPlus }}
+          INPUT_YTKACE: ${{ inputs.main_tweak == 'YTKACE' }}
+          INPUT_YOUMOD: ${{ inputs.main_tweak == 'YouMod' }}
+          INPUT_YTPLUS: ${{ inputs.main_tweak == 'YTPlus' }}
           INPUT_YOUPIP: ${{ inputs.YouPiP }}
           INPUT_RYD: ${{ inputs.RYD }}
           INPUT_YTABCONFIG: ${{ inputs.YTABConfig }}
@@ -462,8 +454,8 @@ jobs:
 
       - name: Collect Main Tweak Deb for Release
         env:
-          INPUT_YTKACE: ${{ inputs.YTKACE }}
-          INPUT_YOUMOD: ${{ inputs.YouMod }}
+          INPUT_YTKACE: ${{ inputs.main_tweak == 'YTKACE' }}
+          INPUT_YOUMOD: ${{ inputs.main_tweak == 'YouMod' }}
         run: |
           MAIN_DEBS=""
 
