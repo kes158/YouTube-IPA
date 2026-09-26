@@ -153,7 +153,7 @@ runs:
         fi
 
         if [ "${{ inputs.ythold }}" = "true" ]; then
-          echo "ythold=$(get_hash joshuaseltzer/YTHoldForSpeed)"                     >> $GITHUB_OUTPUT
+          echo "ythold=$(find .github/Tweaks/YTHoldForSpeed -type f | sort | xargs shasum -a 256 | shasum -a 256 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
         else
           echo "ythold=disabled"                                                     >> $GITHUB_OUTPUT
         fi
