@@ -273,7 +273,7 @@ jobs:
       - name: Hide Sensitive Inputs
         uses: levibostian/action-hide-sensitive-inputs@1.2.0
         with:
-          exclude_inputs: display_name,YTKACE,YouMod,YTPlus,YouPiP,RYD,YTABConfig,YouQuality,YouChooseQuality,YouSlider,YTSilentVote,YTweaks,Gonerino,YouGetCaption,YouSpeed,DontEatMyContent,iSponsorBlock,Alderis,YTHold,Inject_Plugins
+          exclude_inputs: bundle_id,display_name,YTKACE,YouMod,YTPlus,YouPiP,RYD,YTABConfig,YouQuality,YouChooseQuality,YouSlider,YTSilentVote,YTweaks,Gonerino,YouGetCaption,YouSpeed,DontEatMyContent,iSponsorBlock,Alderis,YTHold,Inject_Plugins
 
       - name: Download and Validate IPA
         run: |
