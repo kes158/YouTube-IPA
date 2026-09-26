@@ -171,6 +171,3 @@ jobs:
       isponsorblock: ${{ inputs.iSponsorBlock }}
       alderis: ${{ inputs.Alderis }}
       ythold: ${{ inputs.YTHold }}
-    permissions:
-      contents: write
-    secrets: inherit
