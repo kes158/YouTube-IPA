@@ -1,0 +1,176 @@
+name: Build YTPlus IPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      ipa_url:
+        description: "URL to the decrypted IPA file"
+        default: ""
+        required: true
+        type: string
+
+      display_name:
+        description: "App Name (Optional)"
+        default: "YouTube"
+        required: true
+        type: string
+
+      bundle_id:
+        description: "Bundle ID (Optional)"
+        default: "com.google.ios.youtube"
+        required: true
+        type: string
+
+      YouPiP:
+        description: "Integrate YouPiP"
+        default: true
+        required: false
+        type: boolean
+
+      RYD:
+        description: "Integrate Return YouTube Dislikes"
+        default: true
+        required: false
+        type: boolean
+
+      YTABConfig:
+        description: "Integrate YTABConfig"
+        default: true
+        required: false
+        type: boolean
+
+      YouQuality:
+        description: "Integrate YouQuality"
+        default: true
+        required: false
+        type: boolean
+
+      YouChooseQuality:
+        description: "Integrate YouChooseQuality"
+        default: false
+        required: false
+        type: boolean
+
+      YouSlider:
+        description: "Integrate YouSlider"
+        default: true
+        required: false
+        type: boolean
+
+      YTSilentVote:
+        description: "Integrate YTSilentVote"
+        default: true
+        required: false
+        type: boolean
+
+      YTweaks:
+        description: "Integrate YTweaks"
+        default: true
+        required: false
+        type: boolean
+
+      Gonerino:
+        description: "Integrate Gonerino"
+        default: true
+        required: false
+        type: boolean
+
+      YouGetCaption:
+        description: "Integrate YouGetCaption"
+        default: true
+        required: false
+        type: boolean
+
+      YouSpeed:
+        description: "Integrate YouSpeed"
+        default: true
+        required: false
+        type: boolean
+
+      DontEatMyContent:
+        description: "Integrate DontEatMyContent"
+        default: true
+        required: false
+        type: boolean
+
+      iSponsorBlock:
+        description: "Integrate iSponsorBlock"
+        default: false
+        required: false
+        type: boolean
+
+      Alderis:
+        description: "Integrate Alderis (Color Picker)"
+        default: true
+        required: false
+        type: boolean
+
+      YTHold:
+        description: "Integrate YTHoldForSpeed"
+        default: true
+        required: false
+        type: boolean
+
+      Inject_Plugins:
+        description: "Inject all Plugins"
+        default: true
+        required: true
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-tweaks:
+    uses: ./.github/workflows/_build_tweaks.yml
+    with:
+      youmod: false
+      isponsorblock: ${{ inputs.iSponsorBlock }}
+      demc: ${{ inputs.DontEatMyContent }}
+      youpip: ${{ inputs.YouPiP }}
+      ytuhd: false
+      ryd: ${{ inputs.RYD }}
+      ytabconfig: ${{ inputs.YTABConfig }}
+      youquality: ${{ inputs.YouQuality }}
+      youslider: ${{ inputs.YouSlider }}
+      ytsilentvote: ${{ inputs.YTSilentVote }}
+      ytweaks: ${{ inputs.YTweaks }}
+      youchoose: ${{ inputs.YouChooseQuality }}
+      gonerino: ${{ inputs.Gonerino }}
+      yougetcaption: ${{ inputs.YouGetCaption }}
+      youspeed: ${{ inputs.YouSpeed }}
+      youmute: false
+      youloop: false
+      opensafari: false
+      alderis: ${{ inputs.Alderis }}
+      ytkace: false
+      ythold: ${{ inputs.YTHold }}
+
+  package:
+    uses: ./.github/workflows/_build_package.yml
+    needs: build-tweaks
+    with:
+      main_tweak: "YTPlus"
+      ipa_url: ${{ inputs.ipa_url }}
+      display_name: ${{ inputs.display_name }}
+      bundle_id: ${{ inputs.bundle_id }}
+      inject_plugins: ${{ inputs.Inject_Plugins }}
+      youpip: ${{ inputs.YouPiP }}
+      ryd: ${{ inputs.RYD }}
+      ytabconfig: ${{ inputs.YTABConfig }}
+      youquality: ${{ inputs.YouQuality }}
+      youchoosequality: ${{ inputs.YouChooseQuality }}
+      youslider: ${{ inputs.YouSlider }}
+      ytsilentvote: ${{ inputs.YTSilentVote }}
+      ytweaks: ${{ inputs.YTweaks }}
+      gonerino: ${{ inputs.Gonerino }}
+      yougetcaption: ${{ inputs.YouGetCaption }}
+      youspeed: ${{ inputs.YouSpeed }}
+      donteatmycontent: ${{ inputs.DontEatMyContent }}
+      isponsorblock: ${{ inputs.iSponsorBlock }}
+      alderis: ${{ inputs.Alderis }}
+      ythold: ${{ inputs.YTHold }}
+    permissions:
+      contents: write
+    secrets: inherit
