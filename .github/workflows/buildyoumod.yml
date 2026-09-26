@@ -71,7 +71,7 @@ on:
 
       YouQuality:
         description: "Integrate YouQuality"
-        default: false
+        default: true
         required: false
         type: boolean
 
@@ -83,13 +83,13 @@ on:
 
       YouSlider:
         description: "Integrate YouSlider"
-        default: false
+        default: true
         required: false
         type: boolean
 
       YTSilentVote:
         description: "Integrate YTSilentVote"
-        default: false
+        default: true
         required: false
         type: boolean
 
@@ -137,7 +137,7 @@ on:
 
       YTHold:
         description: "Integrate YTHoldForSpeed"
-        default: false
+        default: true
         required: false
         type: boolean
 
