@@ -136,7 +136,7 @@ on:
         type: boolean
 
       YTHold:
-        description: "Integrate YTHoldForSpeed (tap-and-hold playback speed)"
+        description: "Integrate YTHoldForSpeed"
         default: false
         required: false
         type: boolean
