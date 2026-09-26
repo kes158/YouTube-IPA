@@ -113,7 +113,7 @@ on:
 
       YouSpeed:
         description: "Integrate YouSpeed"
-        default: false
+        default: true
         required: false
         type: boolean
 
