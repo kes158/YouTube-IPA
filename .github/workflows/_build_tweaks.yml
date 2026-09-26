@@ -435,14 +435,43 @@ jobs:
           cd iSponsorBlock && make clean package DEBUG=0 FINALPACKAGE=1 ROOTLESS=1 ARCHS=arm64 TARGET=iphone:clang:18.6:13.0
           mv packages/*.deb ${{ github.workspace }}/isponsorblock.deb
 
-      - name: Clone and Build YTHoldForSpeed
+      - name: Package Prebuilt YTHoldForSpeed
         if: inputs.ythold == true && steps.cache_tweaks.outputs.cache_ythold_hit != 'true'
         run: |
-          git clone --quiet --depth=1 https://github.com/joshuaseltzer/YTHoldForSpeed.git
-          mkdir -p "YTHoldForSpeed/layout/Library/Application Support/YTHoldForSpeed.bundle/ko.lproj"
-          cp "${{ github.workspace }}/.github/Tweaks/YTHoldForSpeed-ko.strings" "YTHoldForSpeed/layout/Library/Application Support/YTHoldForSpeed.bundle/ko.lproj/Localizable.strings"
-          cd YTHoldForSpeed && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless ARCHS=arm64 TARGET=iphone:clang:latest:15.0
-          mv packages/*.deb ${{ github.workspace }}/ythold.deb
+          set -e
+          SRC="${{ github.workspace }}/.github/Tweaks/YTHoldForSpeed"
+          if [ ! -f "$SRC/YTHoldForSpeed.dylib" ] || [ ! -d "$SRC/YTHoldForSpeed.bundle" ]; then
+            echo "::error::$SRC 안에 YTHoldForSpeed.dylib 또는 YTHoldForSpeed.bundle이 없습니다."
+            exit 1
+          fi
+
+          PKG_DIR="$(mktemp -d)/ythold_pkg"
+          rm -rf "$PKG_DIR"
+          mkdir -p "$PKG_DIR/DEBIAN"
+          mkdir -p "$PKG_DIR/var/jb/Library/MobileSubstrate/DynamicLibraries"
+          mkdir -p "$PKG_DIR/var/jb/Library/Application Support"
+
+          cp "$SRC/YTHoldForSpeed.dylib" "$PKG_DIR/var/jb/Library/MobileSubstrate/DynamicLibraries/YTHoldForSpeed.dylib"
+
+          printf '%s\n' '{ Filter = { Bundles = ( "com.google.ios.youtube" ); }; }' \
+            > "$PKG_DIR/var/jb/Library/MobileSubstrate/DynamicLibraries/YTHoldForSpeed.plist"
+
+          cp -R "$SRC/YTHoldForSpeed.bundle" "$PKG_DIR/var/jb/Library/Application Support/YTHoldForSpeed.bundle"
+
+          {
+            printf '%s\n' 'Package: com.joshuaseltzer.ytholdforspeed'
+            printf '%s\n' 'Name: YTHoldForSpeed'
+            printf '%s\n' 'Version: 1.2.3'
+            printf '%s\n' 'Architecture: iphoneos-arm64'
+            printf '%s\n' 'Description: Tap and hold on the YouTube video player to toggle a selected playback speed. Preferences for the tweak are configured within the YouTube app.'
+            printf '%s\n' 'Maintainer: Joshua Seltzer <joshua.seltzer90@gmail.com>'
+            printf '%s\n' 'Author: Joshua Seltzer <joshua.seltzer90@gmail.com>'
+            printf '%s\n' 'Section: Tweaks'
+            printf '%s\n' 'Depends: mobilesubstrate (>= 0.9.5000)'
+          } > "$PKG_DIR/DEBIAN/control"
+
+          chmod 0755 "$PKG_DIR/DEBIAN"
+          dpkg-deb -Zgzip -b "$PKG_DIR" "${{ github.workspace }}/ythold.deb"
 
       - name: Clone and Build VolumeBoostYT
         if: inputs.volumeboost == true && steps.cache_tweaks.outputs.cache_volumeboost_hit != 'true'
