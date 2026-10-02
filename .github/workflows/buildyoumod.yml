@@ -198,7 +198,17 @@ jobs:
       - name: Copy YTPlus deb to workspace
         if: inputs.main_tweak == 'YTPlus'
         run: |
-          cp .github/Tweaks/com_dvntm_ytlite_6_0b1_iphoneos_arm64.deb ${{ github.workspace }}/
+          # .github/Tweaks/ 안에 com_dvntm_ytlite_*.deb가 여러 개 있어도(b1, b2, ...)
+          # 버전 정렬(sort -V)로 가장 최신 것 하나만 골라서 사용한다.
+          # 나중에 새 버전 deb를 추가로 올려놓기만 하면 다음 빌드부터 자동으로 그걸 씀.
+          LATEST_DEB=$(ls .github/Tweaks/com_dvntm_ytlite_*.deb 2>/dev/null | sort -V | tail -1)
+          if [ -z "$LATEST_DEB" ]; then
+            echo "::error::.github/Tweaks/ 안에서 YTPlus deb(com_dvntm_ytlite_*.deb)를 찾지 못했습니다."
+            exit 1
+          fi
+          echo "  📦 [YTPlus] 사용할 deb: $(basename "$LATEST_DEB")"
+          cp "$LATEST_DEB" ${{ github.workspace }}/
+          echo "YTPLUS_DEB_NAME=$(basename "$LATEST_DEB")" >> $GITHUB_ENV
 
       - name: Patch YTPlus Korean localization
         if: inputs.main_tweak == 'YTPlus'
@@ -209,7 +219,7 @@ jobs:
             exit 0
           fi
 
-          DEB="${{ github.workspace }}/com_dvntm_ytlite_6_0b1_iphoneos_arm64.deb"
+          DEB="${{ github.workspace }}/${{ env.YTPLUS_DEB_NAME }}"
           KO_STRINGS_ABS="$(pwd)/$KO_STRINGS"
           WORKDIR="$(mktemp -d)"
           cd "$WORKDIR"
@@ -400,12 +410,14 @@ jobs:
 
           elif [ "$INPUT_YTPLUS" = "true" ]; then
             TWEAK_NAME="YTPlus"
-            YTPLUS_DEB=$(ls .github/Tweaks/com_dvntm_ytlite_*.deb 2>/dev/null | head -1)
-            if [ -z "$YTPLUS_DEB" ]; then
-              echo "::error::YTPlus deb not found in .github/Tweaks/"
+            # "Copy YTPlus deb to workspace" 단계에서 이미 최신 버전을 골라 YTPLUS_DEB_NAME으로
+            # 남겨뒀으니 그걸 그대로 쓴다 (여기서 다시 head -1로 고르면 b1/b2 중 알파벳상
+            # 먼저 오는 걸 집어서 최신판과 어긋날 수 있다).
+            if [ -z "$YTPLUS_DEB_NAME" ]; then
+              echo "::error::YTPLUS_DEB_NAME이 비어있습니다. 'Copy YTPlus deb to workspace' 단계가 먼저 실행됐는지 확인하세요."
               exit 1
             fi
-            YTPLUS_VERSION=$(basename "$YTPLUS_DEB" | sed 's/com_dvntm_ytlite_//' | sed 's/_iphoneos.*//' | sed 's/_/./g')
+            YTPLUS_VERSION=$(echo "$YTPLUS_DEB_NAME" | sed 's/com_dvntm_ytlite_//' | sed 's/_iphoneos.*//' | sed 's/_/./g')
             echo "{}" > release.json
             TWEAK_VERSION_OVERRIDE="$YTPLUS_VERSION" python3 .github/scripts/parse_release.py
 
