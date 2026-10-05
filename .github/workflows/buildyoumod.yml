@@ -134,6 +134,12 @@ on:
         required: false
         type: boolean
 
+      YTBackgroundOnly:
+        description: "Integrate YTBackgroundOnly (background playback, bypass 'Continue watching?')"
+        default: false
+        required: false
+        type: boolean
+
       Inject_Plugins:
         description: "Inject all Plugins (IntentsExtension, NotificationContent, NotificationService, OpenYoutubeSafari, Share, WidgetKit)"
         default: true
@@ -171,6 +177,7 @@ jobs:
       alderis: ${{ inputs.Alderis }}
       ytkace: ${{ inputs.main_tweak == 'YTKACE' }}
       ythold: ${{ inputs.YTHold }}
+      ytbgonly: ${{ inputs.YTBackgroundOnly }}
 
   package:
     name: Build YouMod IPA
@@ -275,7 +282,7 @@ jobs:
       - name: Hide Sensitive Inputs
         uses: levibostian/action-hide-sensitive-inputs@1.2.0
         with:
-          exclude_inputs: bundle_id,display_name,YTKACE,YouMod,YTPlus,YouPiP,RYD,YTABConfig,YouQuality,YouChooseQuality,YouSlider,YTSilentVote,YTweaks,Gonerino,YouGetCaption,YouSpeed,DontEatMyContent,iSponsorBlock,Alderis,YTHold,Inject_Plugins
+          exclude_inputs: bundle_id,display_name,YTKACE,YouMod,YTPlus,YouPiP,RYD,YTABConfig,YouQuality,YouChooseQuality,YouSlider,YTSilentVote,YTweaks,Gonerino,YouGetCaption,YouSpeed,DontEatMyContent,iSponsorBlock,Alderis,YTHold,YTBackgroundOnly,Inject_Plugins
 
       - name: Download and Validate IPA
         run: |
@@ -387,6 +394,7 @@ jobs:
           INPUT_ISPONSORBLOCK: ${{ inputs.iSponsorBlock }}
           INPUT_ALDERIS: ${{ inputs.Alderis }}
           INPUT_YTHOLD: ${{ inputs.YTHold }}
+          INPUT_YTBACKGROUNDONLY: ${{ inputs.YTBackgroundOnly }}
           INPUT_INJECT_PLUGINS: ${{ inputs.Inject_Plugins }}
           GH_TOKEN: ${{ github.token }}
         run: |
