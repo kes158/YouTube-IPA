@@ -58,6 +58,9 @@ inputs:
   ythold:
     required: false
     default: 'false'
+  ytbgonly:
+    required: false
+    default: 'false'
   volumeboost:
     required: false
     default: 'false'
@@ -128,6 +131,9 @@ inputs:
   ythold_commit:
     required: false
     default: 'disabled'
+  ytbgonly_commit:
+    required: false
+    default: 'disabled'
   volumeboost_commit:
     required: false
     default: 'disabled'  
@@ -163,6 +169,7 @@ outputs:
   cache_isponsorblock_hit: { value: "${{ steps.cache_isponsorblock.outputs.cache-hit }}" }
   cache_demc_hit:          { value: "${{ steps.cache_demc.outputs.cache-hit }}" }
   cache_ythold_hit:        { value: "${{ steps.cache_ythold.outputs.cache-hit }}" }
+  cache_ytbgonly_hit:      { value: "${{ steps.cache_ytbgonly.outputs.cache-hit }}" }
   cache_volumeboost_hit:   { value: "${{ steps.cache_volumeboost.outputs.cache-hit }}" }
   cache_nativeshare_hit:   { value: "${{ steps.cache_nativeshare.outputs.cache-hit }}" }
   cache_ytkace_hit:        { value: "${{ steps.cache_ytkace.outputs.cache-hit }}" }
@@ -316,6 +323,13 @@ runs:
       with:
         path: ${{ github.workspace }}/ythold.deb
         key: ythold-ko-${{ inputs.ythold_commit }}-${{ hashFiles('.github/Tweaks/YTHoldForSpeed-ko.strings') }}-sdk${{ inputs.sdk_version }}
+
+    - uses: actions/cache@v5.0.5
+      if: inputs.ytbgonly == 'true' && inputs.ytbgonly_commit != 'disabled'
+      id: cache_ytbgonly
+      with:
+        path: ${{ github.workspace }}/ytbgonly.deb
+        key: ytbgonly-${{ inputs.ytbgonly_commit }}-sdk${{ inputs.sdk_version }}
 
     - uses: actions/cache@v5.0.5
       if: inputs.volumeboost == 'true'
