@@ -15,6 +15,10 @@ on:
         type: boolean
         required: false
         default: false
+      ytbgonly:
+        type: boolean
+        required: false
+        default: false
       volumeboost:
         type: boolean
         required: false
@@ -132,6 +136,7 @@ jobs:
           isponsorblock: ${{ inputs.isponsorblock }}
           demc: ${{ inputs.demc }}
           ythold: ${{ inputs.ythold }}
+          ytbgonly: ${{ inputs.ytbgonly }}
           volumeboost: ${{ inputs.volumeboost }}
           nativeshare: ${{ inputs.nativeshare }}
           ytkace: ${{ inputs.ytkace }}
@@ -206,6 +211,7 @@ jobs:
           isponsorblock: ${{ inputs.isponsorblock }}
           demc: ${{ inputs.demc }}
           ythold: ${{ inputs.ythold }}
+          ytbgonly: ${{ inputs.ytbgonly }}
           volumeboost: ${{ inputs.volumeboost }}
           nativeshare: ${{ inputs.nativeshare }}
           ytkace: ${{ inputs.ytkace }}
@@ -247,6 +253,7 @@ jobs:
           isponsorblock_commit: ${{ steps.commit_hashes.outputs.isponsorblock }}
           demc_commit: ${{ steps.commit_hashes.outputs.demc }}
           ythold_commit: ${{ steps.commit_hashes.outputs.ythold }}
+          ytbgonly_commit: ${{ steps.commit_hashes.outputs.ytbgonly }}
           volumeboost_commit: ${{ steps.commit_hashes.outputs.volumeboost }}
           nativeshare_commit: ${{ steps.commit_hashes.outputs.nativeshare }}
           ytkace_commit: ${{ steps.commit_hashes.outputs.ytkace }}
@@ -468,6 +475,13 @@ jobs:
 
           chmod 0755 "$PKG_DIR/DEBIAN"
           dpkg-deb -Zgzip -b "$PKG_DIR" "${{ github.workspace }}/ythold.deb"
+
+      - name: Clone and Build YTBackgroundOnly
+        if: inputs.ytbgonly == true && steps.cache_tweaks.outputs.cache_ytbgonly_hit != 'true'
+        run: |
+          git clone --quiet --depth=1 https://github.com/hooray804/YTBackgroundOnly.git
+          cd YTBackgroundOnly && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+          mv packages/*.deb ${{ github.workspace }}/ytbgonly.deb
 
       - name: Clone and Build VolumeBoostYT
         if: inputs.volumeboost == true && steps.cache_tweaks.outputs.cache_volumeboost_hit != 'true'
