@@ -11,6 +11,9 @@ inputs:
   ythold:
     required: false
     default: 'false'
+  ytbgonly:
+    required: false
+    default: 'false'
   volumeboost:
     required: false
     default: 'false'
@@ -88,6 +91,9 @@ outputs:
   ythold:
     description: YTHoldForSpeed commit hash
     value: ${{ steps.hashes.outputs.ythold }}
+  ytbgonly:
+    description: YTBackgroundOnly commit hash
+    value: ${{ steps.hashes.outputs.ytbgonly }}
   volumeboost:
     description: VolumeBoostYT commit hash
     value: ${{ steps.hashes.outputs.volumeboost }}
@@ -156,6 +162,12 @@ runs:
           echo "ythold=$(find .github/Tweaks/YTHoldForSpeed -type f | sort | xargs shasum -a 256 | shasum -a 256 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
         else
           echo "ythold=disabled"                                                     >> $GITHUB_OUTPUT
+        fi
+
+        if [ "${{ inputs.ytbgonly }}" = "true" ]; then
+          echo "ytbgonly=$(get_hash hooray804/YTBackgroundOnly)"                     >> $GITHUB_OUTPUT
+        else
+          echo "ytbgonly=disabled"                                                   >> $GITHUB_OUTPUT
         fi
 
         if [ "${{ inputs.volumeboost }}" = "true" ]; then
